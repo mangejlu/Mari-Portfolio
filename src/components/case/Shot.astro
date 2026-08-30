@@ -14,7 +14,7 @@ const { name, alt, caption, wide = false } = Astro.props;
   <Picture
     name={name}
     alt={alt}
-    sizes={wide ? '(max-width: 920px) 100vw, 920px' : '(max-width: 640px) 100vw, 450px'}
+    sizes={wide ? '(max-width: 1320px) 100vw, 1320px' : '(max-width: 640px) 100vw, 450px'}
   />
   {caption && <figcaption>{caption}</figcaption>}
 </figure>

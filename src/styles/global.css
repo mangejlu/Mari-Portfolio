@@ -25,6 +25,7 @@ body {
   font-family: var(--font-body);
   color: var(--ink);
   background: var(--bg);
+  font-size: clamp(15px, 1.15vw, 17px);
   line-height: 1.55;
   /* the custom cursor replaces the native one, but only where a real
      pointer exists — see CustomCursor.astro */
@@ -104,7 +105,7 @@ button {
 
 .section-sub {
   color: var(--ink-soft);
-  font-size: 15px;
+  font-size: clamp(15px, 1.15vw, 17px);
   margin: 8px 0 26px;
 }
 
@@ -216,6 +217,6 @@ main {
 }
 
 @media (max-width: 640px) {
-  :root { --gutter: 20px; }
+  :root { --gutter: 20px; --measure: 100%; }
   .chapter { padding: 64px var(--gutter); }
 }

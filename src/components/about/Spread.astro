@@ -22,7 +22,7 @@ import { pieces } from '../../data/about';
     piece.kind === 'photo' ? (
       <figure class:list={['piece', 'shot', `shot--${piece.shape}`]}>
         <div class="shot__frame" style={piece.focus ? `--focus:${piece.focus}` : undefined}>
-          <Picture name={piece.name} alt={piece.alt} sizes="(max-width: 700px) 100vw, 300px" />
+          <Picture name={piece.name} alt={piece.alt} sizes="(max-width: 700px) 100vw, (max-width: 1600px) 340px, 300px" />
         </div>
         <figcaption>
           <span class="note__label">{piece.kicker}</span>
@@ -186,6 +186,7 @@ import { pieces } from '../../data/about';
     line-height: 1.15;
   }
 
+  @media (min-width: 1600px) { .spread { columns: 4; column-gap: 34px; } }
   @media (max-width: 900px) { .spread { columns: 2; column-gap: 24px; } }
   @media (max-width: 560px) {
     .spread { columns: 1; }

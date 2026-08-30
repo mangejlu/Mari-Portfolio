@@ -35,8 +35,14 @@
   --font-body: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
 
   /* rhythm */
-  --measure: 920px;
-  --gutter: 28px;
+  /* The content column. 920px is a comfortable reading width on a laptop but
+     reads as a narrow strip on a large display, so it grows with the screen.
+     Prose blocks keep their own ch-based caps, so lines never get too long
+     for comfort even when the layout is wide. */
+  /* Grows smoothly with the window instead of jumping at breakpoints, and
+     stops at 1440 so lines never get uncomfortable on a very large display. */
+  --measure: clamp(920px, 80vw, 1440px);
+  --gutter: clamp(28px, 2.4vw, 44px);
   --radius-sm: 12px;
   --radius: 16px;
   --radius-lg: 20px;
