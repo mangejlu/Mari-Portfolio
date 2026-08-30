@@ -38,6 +38,8 @@ export type Piece =
       focus?: string;
       /** Portrait, landscape or square. Variety is what keeps it from gridding. */
       shape: 'tall' | 'wide' | 'square';
+      /** Small uppercase label, matching the text pieces. */
+      kicker: string;
       label: string;
       note?: string;
     }
@@ -54,7 +56,7 @@ export const pieces: Piece[] = [
   {
     kind: 'note',
     label: 'Born, raised, living',
-    title: 'Three places, so far',
+    title: 'Places in my heart',
     places: [
       { place: 'Maturín, Venezuela', note: 'where I was born' },
       { place: 'Ciudad del Carmen', note: 'grew up on a beautiful island south of Mexico' },
@@ -68,6 +70,7 @@ export const pieces: Piece[] = [
     alt: 'Me sitting on a boardwalk through a flooded forest carpeted in bright green.',
     focus: 'center 55%',
     shape: 'tall',
+    kicker: 'Hobby',
     label: 'Travelling',
     note: 'The hobby that keeps me curious and hungry for more.',
   },
@@ -77,6 +80,7 @@ export const pieces: Piece[] = [
     alt: 'A musical theatre scene, six performers together under stage lights.',
     focus: 'center 84%',
     shape: 'wide',
+    kicker: 'On stage',
     label: 'Musical theatre and dance',
     note: 'My favourite form of human connection.',
   },
@@ -92,14 +96,15 @@ export const pieces: Piece[] = [
     alt: 'An oil painting of a waterfall and a white winged figure, exhibited.',
     focus: 'center 42%',
     shape: 'square',
+    kicker: 'On canvas',
     label: 'Oil painting',
-    note: 'Visualizing my thoughts and dreams. No undo button, which is good practice.',
+    note: 'Visualizing my thoughts and dreams. My favorite way of relaxing.',
   },
   {
     kind: 'note',
-    label: 'Social service · ongoing',
+    label: 'Social service',
     title: 'Geeky Minds',
-    body: 'A programme with Engagement Foundation, getting girls from underdeveloped countries interested in the STEM careers nobody told them were an option.',
+    body: 'A program founded by Engagement Foundation, getting girls from underdeveloped countries interested in the STEM careers nobody told them were an option.',
   },
   {
     kind: 'photo',
@@ -107,8 +112,9 @@ export const pieces: Piece[] = [
     alt: 'Me at the 19th World Summit of Nobel Peace Laureates in Monterrey, wearing a volunteer badge.',
     focus: 'center 38%',
     shape: 'tall',
+    kicker: 'Volunteering · 2024',
     label: 'World Summit of Nobel Peace Laureates',
-    note: 'A separate thing entirely: volunteer staff for the summit itself, Monterrey 2024.',
+    note: 'Volunteer staff for the summit itself, Monterrey 2024.',
   },
   {
     kind: 'note',
