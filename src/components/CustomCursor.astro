@@ -1,0 +1,505 @@
+---
+/**
+ * The labelled cursor. Only ever exists on devices with a fine pointer —
+ * on touch we leave the native behaviour completely alone (no hidden
+ * cursor, no phantom ring, no listeners).
+ *
+ * Any element can opt in with `data-cursor="label"`; the delegated
+ * listener means dynamically-added elements work without re-binding.
+ */
+---
+
+<div class="cursor" id="cursor" aria-hidden="true" hidden transition:persist="cursor">
+  <div class="cursor__ring" data-cursor-ring data-mood="awake">
+    <span class="cursor__eye cursor__eye--l"></span>
+    <span class="cursor__eye cursor__eye--r"></span>
+  </div>
+  <div class="cursor__label" data-cursor-label></div>
+  <div class="cursor__bubble" data-cursor-bubble></div>
+  <div class="cursor__zzz" data-cursor-zzz>
+    <span>z</span><span>z</span><span>z</span>
+  </div>
+</div>
+
+<style>
+  /* Hide the native cursor only once the custom one is actually live, so a
+     JS failure or a touch device never leaves the user without a pointer. */
+  :global(body.has-custom-cursor),
+  :global(body.has-custom-cursor *) {
+    cursor: none;
+  }
+
+  .cursor__ring,
+  .cursor__label {
+    position: fixed;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    z-index: 50;
+    will-change: transform;
+  }
+
+  .cursor__ring {
+    width: 16px;
+    height: 16px;
+    margin: -8px 0 0 -8px;
+    border-radius: 50%;
+    border: 1.5px solid var(--ink);
+    opacity: 0.55;
+    display: grid;
+    grid-auto-flow: column;
+    gap: 6px;
+    place-content: center;
+    transition:
+      transform 0.18s var(--ease),
+      width 0.32s var(--ease),
+      height 0.32s var(--ease),
+      margin 0.32s var(--ease),
+      opacity 0.32s var(--ease),
+      background 0.32s var(--ease),
+      border-color var(--dur-slow) var(--ease);
+  }
+  .cursor__ring[data-active='true'] { border-color: var(--accent); }
+
+  /* ---- the cursor as a small creature ----
+     Left alone long enough the ring grows a face, gets sleepy and nods off.
+     It is decoration with a purpose: it makes an idle screen feel inhabited
+     rather than abandoned, and it costs nothing until you stop moving. */
+  .cursor__eye {
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background: var(--ink);
+    opacity: 0;
+    transform: scaleY(0.2);
+    transition: opacity 0.25s var(--ease), transform 0.25s var(--ease);
+  }
+
+  /* awake: a plain ring, exactly as before */
+  .cursor__ring[data-mood='awake'] .cursor__eye { opacity: 0; }
+
+  /* checking in: wide awake, blinking */
+  .cursor__ring[data-mood='checking'],
+  .cursor__ring[data-mood='sleepy'],
+  .cursor__ring[data-mood='asleep'] {
+    width: 34px;
+    height: 34px;
+    margin: -17px 0 0 -17px;
+    opacity: 0.9;
+    background: var(--bg);
+  }
+  .cursor__ring[data-mood='checking'] .cursor__eye {
+    opacity: 1;
+    transform: scaleY(1);
+    animation: cursor-blink 3.4s ease-in-out infinite;
+  }
+  @keyframes cursor-blink {
+    0%, 92%, 100% { transform: scaleY(1); }
+    95%           { transform: scaleY(0.1); }
+  }
+
+  /* excited: wide eyes, up on its toes. Used near things worth clicking. */
+  .cursor__ring[data-mood='excited'] {
+    width: 30px;
+    height: 30px;
+    margin: -15px 0 0 -15px;
+    opacity: 0.95;
+    background: var(--bg);
+    border-color: var(--accent);
+    animation: cursor-bounce 0.7s ease-in-out infinite;
+  }
+  .cursor__ring[data-mood='excited'] .cursor__eye {
+    opacity: 1;
+    width: 5px;
+    height: 5px;
+    transform: scaleY(1);
+  }
+  @keyframes cursor-bounce {
+    0%, 100% { translate: 0 0; }
+    50%      { translate: 0 -3px; }
+  }
+
+  /* startled: caught napping. A single jolt, then back to normal. */
+  .cursor__ring[data-startled='true'] {
+    animation: cursor-jolt 0.45s var(--ease);
+  }
+  @keyframes cursor-jolt {
+    0%   { scale: 1;    rotate: 0deg; }
+    22%  { scale: 1.45; rotate: -12deg; }
+    48%  { scale: 0.9;  rotate: 9deg; }
+    72%  { scale: 1.12; rotate: -4deg; }
+    100% { scale: 1;    rotate: 0deg; }
+  }
+
+  /* sleepy: lids at half mast */
+  .cursor__ring[data-mood='sleepy'] .cursor__eye {
+    opacity: 1;
+    transform: scaleY(0.45) translateY(1px);
+  }
+
+  /* asleep: eyes shut, and a slow breath */
+  .cursor__ring[data-mood='asleep'] {
+    animation: cursor-breathe 3.6s ease-in-out infinite;
+  }
+  .cursor__ring[data-mood='asleep'] .cursor__eye {
+    opacity: 1;
+    width: 6px;
+    height: 2px;
+    border-radius: 2px 2px 0 0;
+    transform: none;
+  }
+  @keyframes cursor-breathe {
+    0%, 100% { border-color: var(--ink); }
+    50%      { border-color: color-mix(in oklab, var(--ink) 45%, transparent); }
+  }
+
+  /* ---- speech bubble ---- */
+  .cursor__bubble {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 51;
+    pointer-events: none;
+    font-size: 11.5px;
+    line-height: 1.3;
+    white-space: nowrap;
+    padding: 6px 11px;
+    border-radius: 14px;
+    background: var(--ink);
+    color: var(--bg);
+    opacity: 0;
+    transform-origin: bottom left;
+    transition: opacity 0.25s var(--ease);
+    will-change: transform;
+  }
+  .cursor__bubble[data-show='true'] {
+    opacity: 1;
+    animation: bubble-pop 0.3s var(--ease);
+  }
+  @keyframes bubble-pop {
+    from { scale: 0.85; }
+    to   { scale: 1; }
+  }
+
+  /* ---- z z z ---- */
+  .cursor__zzz {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 51;
+    pointer-events: none;
+    opacity: 0;
+    font-family: var(--font-display);
+    font-style: italic;
+    color: var(--ink);
+    transition: opacity 0.3s var(--ease);
+  }
+  .cursor__zzz[data-show='true'] { opacity: 1; }
+  .cursor__zzz span {
+    position: absolute;
+    animation: zzz-rise 2.8s ease-in-out infinite;
+    opacity: 0;
+  }
+  .cursor__zzz span:nth-child(1) { font-size: 10px; animation-delay: 0s; }
+  .cursor__zzz span:nth-child(2) { font-size: 13px; animation-delay: 0.9s; }
+  .cursor__zzz span:nth-child(3) { font-size: 16px; animation-delay: 1.8s; }
+  @keyframes zzz-rise {
+    0%   { opacity: 0; transform: translate(0, 0) rotate(-6deg); }
+    18%  { opacity: 0.75; }
+    100% { opacity: 0; transform: translate(16px, -34px) rotate(12deg); }
+  }
+
+  /* The whole creature is decorative motion, so reduced motion opts out and
+     keeps the plain ring. */
+  @media (prefers-reduced-motion: reduce) {
+    .cursor__ring { animation: none !important; }
+    .cursor__eye { display: none; }
+    .cursor__bubble, .cursor__zzz { display: none; }
+  }
+
+  .cursor__label {
+    font-size: 11px;
+    color: var(--ink);
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 3px 9px;
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity var(--dur-fast) var(--ease);
+  }
+</style>
+
+<script>
+  import { hasFinePointer, prefersReducedMotion } from '../scripts/env';
+
+  function initCursor() {
+    const root = document.getElementById('cursor');
+    if (!root || root.dataset.wired === 'true') return;
+
+    // Touch / stylus devices keep the system pointer, full stop.
+    if (!hasFinePointer()) return;
+
+    root.dataset.wired = 'true';
+    root.hidden = false;
+    document.body.classList.add('has-custom-cursor');
+
+    const ring = root.querySelector<HTMLElement>('[data-cursor-ring]')!;
+    const label = root.querySelector<HTMLElement>('[data-cursor-label]')!;
+    const bubble = root.querySelector<HTMLElement>('[data-cursor-bubble]')!;
+    const zzz = root.querySelector<HTMLElement>('[data-cursor-zzz]')!;
+    let scale = 1;
+    let x = -100;
+    let y = -100;
+    /** How far the sleeping cursor has nodded downward. */
+    let drop = 0;
+
+    const render = () => {
+      ring.style.transform = `translate(${x}px, ${y + drop}px) scale(${scale})`;
+      label.style.transform = `translate(${x + 16}px, ${y + 16}px)`;
+      bubble.style.transform = `translate(${x + 20}px, ${y + drop - 34}px)`;
+      zzz.style.transform = `translate(${x + 16}px, ${y + drop - 18}px)`;
+    };
+
+    /* ---------------- the cursor falls asleep ----------------
+       Nobody watches a loading spinner for twenty seconds, but people do stop
+       to read. The arc is paced so the whole thing is visible in one pause
+       without feeling like the page gave up on you immediately. */
+    type Mood = 'awake' | 'checking' | 'sleepy' | 'asleep' | 'excited';
+    const STAGES: Array<{ at: number; mood: Mood; say?: string }> = [
+      { at: 6000,  mood: 'checking', say: 'hey! are you still there?' },
+      { at: 12000, mood: 'sleepy',   say: 'getting sleepy…' },
+      { at: 18000, mood: 'asleep' },
+    ];
+
+    let mood: Mood = 'awake';
+    let idleSince = performance.now();
+    let dropRaf = 0;
+    const sleepy = !prefersReducedMotion();
+
+    /**
+     * How far the cursor can fall before something catches it.
+     *
+     * Rather than nodding a fixed distance, it drops until it finds the top
+     * edge of something real underneath and rests on it. That's what makes it
+     * read as a creature in a room instead of an animation playing in place.
+     */
+    const RESTABLE = 'button, a, input, img, figure, li, h1, h2, h3, p, canvas, video';
+
+    function findLanding(fromX: number, fromY: number): number {
+      const limit = window.innerHeight - fromY - 10;
+      for (let d = 14; d < limit; d += 8) {
+        const el = document.elementFromPoint(fromX, fromY + d) as HTMLElement | null;
+        if (!el || el.closest('.cursor')) continue;
+
+        // A surface is something with its own presence: a control, an image,
+        // a line of text, or anything that paints a background or a border.
+        const target = el.closest<HTMLElement>(RESTABLE) ?? el;
+        const cs = getComputedStyle(target);
+        const paints =
+          cs.backgroundColor !== 'rgba(0, 0, 0, 0)' ||
+          cs.borderTopWidth !== '0px' ||
+          RESTABLE.split(', ').includes(target.tagName.toLowerCase());
+        if (!paints) continue;
+
+        const top = target.getBoundingClientRect().top;
+        if (top > fromY + 8) return Math.min(top - fromY - 9, limit);
+      }
+      // Nothing below: settle just above the fold.
+      return Math.max(0, Math.min(limit, 40));
+    }
+
+    function fallAsleep() {
+      cancelAnimationFrame(dropRaf);
+      const distance = findLanding(x, y);
+      const from = drop;
+      // Longer falls take longer, but not linearly: gravity, roughly.
+      const duration = Math.min(1600, 420 + Math.sqrt(Math.max(distance, 0)) * 90);
+      const start = performance.now();
+
+      const settle = (now: number) => {
+        if (mood !== 'asleep') return;
+        const t = Math.min((now - start) / duration, 1);
+        // Accelerate on the way down, then one small bounce on landing.
+        const eased = t < 0.82
+          ? Math.pow(t / 0.82, 1.9)
+          : 1 - Math.sin((t - 0.82) / 0.18 * Math.PI) * 0.06;
+        drop = from + (distance - from) * eased;
+        render();
+        if (t < 1) dropRaf = requestAnimationFrame(settle);
+      };
+      dropRaf = requestAnimationFrame(settle);
+    }
+
+    const setMood = (next: Mood, say?: string) => {
+      if (mood === next) return;
+      mood = next;
+      ring.dataset.mood = next;
+
+      if (say) {
+        bubble.textContent = say;
+        bubble.dataset.show = 'true';
+      } else {
+        bubble.dataset.show = 'false';
+      }
+      zzz.dataset.show = String(next === 'asleep');
+
+      if (next === 'asleep') {
+        fallAsleep();
+      } else {
+        cancelAnimationFrame(dropRaf);
+        drop = 0;
+      }
+    };
+
+    let startleTimer: number | undefined;
+
+    const wake = (startled = false) => {
+      if (mood !== 'awake') {
+        // Caught napping by a sudden movement: jolt before settling.
+        if (startled && (mood === 'asleep' || mood === 'sleepy')) {
+          ring.dataset.startled = 'true';
+          clearTimeout(startleTimer);
+          startleTimer = window.setTimeout(() => { ring.dataset.startled = 'false'; }, 460);
+        }
+        setMood('awake');
+      }
+      idleSince = performance.now();
+    };
+
+    if (sleepy) {
+      window.setInterval(() => {
+        if (document.hidden) return;
+        if (mood === 'excited') return;
+        const idle = performance.now() - idleSince;
+        // Walk backwards so the latest reached stage wins.
+        for (let i = STAGES.length - 1; i >= 0; i--) {
+          if (idle >= STAGES[i].at) { setMood(STAGES[i].mood, STAGES[i].say); return; }
+        }
+        setMood('awake');
+      }, 400);
+
+      // Any sign of life resets the clock.
+      for (const ev of ['pointerdown', 'keydown', 'wheel', 'scroll', 'touchstart'] as const) {
+        window.addEventListener(ev, wake, { passive: true });
+      }
+      document.addEventListener('visibilitychange', () => { if (!document.hidden) wake(); });
+    }
+
+    let lastMove = performance.now();
+    let lastX = x;
+    let lastY = y;
+
+    window.addEventListener(
+      'pointermove',
+      (e) => {
+        if (e.pointerType !== 'mouse') return;
+        const now = performance.now();
+        // Clamped to roughly one frame: after a long pause the real elapsed
+        // time is enormous, which would make any movement look slow and stop
+        // the startle from ever firing in the one case it's for. A big jump in
+        // a single event genuinely is a fast movement.
+        const dt = Math.min(Math.max(now - lastMove, 1), 64);
+        const dist = Math.hypot(e.clientX - lastX, e.clientY - lastY);
+        // px per ms. A deliberate flick clears this easily; a slow drift never does.
+        const fast = dist / dt > 1.4 && dist > 30;
+        lastMove = now; lastX = e.clientX; lastY = e.clientY;
+
+        x = e.clientX;
+        y = e.clientY;
+        if (sleepy) wake(fast);
+        render();
+      },
+      { passive: true },
+    );
+
+    // Delegated hover: works for cards, modals and anything rendered later.
+    let current: Element | null = null;
+    document.addEventListener(
+      'pointerover',
+      (e) => {
+        const excite = (e.target as Element | null)?.closest?.('[data-cursor-excited]');
+        if (excite) {
+          if (sleepy) { wake(); setMood('excited'); }
+        } else if (mood === 'excited') {
+          setMood('awake');
+        }
+
+        const hit = (e.target as Element | null)?.closest?.('[data-cursor]');
+        if (hit === current) return;
+        current = hit ?? null;
+        if (hit) {
+          if (sleepy) wake();
+          scale = 2.2;
+          label.textContent = hit.getAttribute('data-cursor') ?? '';
+          label.style.opacity = '1';
+          ring.dataset.active = 'true';
+        } else {
+          scale = 1;
+          label.style.opacity = '0';
+          ring.dataset.active = 'false';
+        }
+        render();
+      },
+      { passive: true },
+    );
+
+    // ---- sparkles on click ----
+    if (!prefersReducedMotion()) {
+      const star =
+        'polygon(50% 0%, 61% 39%, 100% 50%, 61% 61%, 50% 100%, 39% 61%, 0% 50%, 39% 39%)';
+
+      window.addEventListener('click', (e) => {
+        if (!(e as PointerEvent).clientX && !(e as PointerEvent).clientY) return; // keyboard "click"
+        spawnSparkles(e.clientX, e.clientY, 6);
+      });
+
+      function spawnSparkles(cx: number, cy: number, count: number) {
+        const styles = getComputedStyle(document.documentElement);
+        const colors = ['--aura-1', '--aura-2', '--aura-3'].map((v) =>
+          styles.getPropertyValue(v).trim(),
+        );
+        const frag = document.createDocumentFragment();
+        const nodes: HTMLElement[] = [];
+
+        for (let i = 0; i < count; i++) {
+          const s = document.createElement('div');
+          const angle = ((Math.PI * 2) / count) * i;
+          const dist = 24 + Math.random() * 26;
+          s.className = 'sparkle';
+          s.style.cssText = `left:${cx + Math.cos(angle) * dist}px;top:${
+            cy + Math.sin(angle) * dist
+          }px;background:${colors[i % 3]};clip-path:${star}`;
+          frag.appendChild(s);
+          nodes.push(s);
+        }
+        document.body.appendChild(frag);
+        setTimeout(() => nodes.forEach((n) => n.remove()), 720);
+      }
+
+      // Exposed so the easter egg (and anything else) can throw confetti.
+      (window as any).__sparkle = spawnSparkles;
+    }
+  }
+
+  initCursor();
+</script>
+
+<style is:global>
+  .sparkle {
+    position: fixed;
+    width: 9px;
+    height: 9px;
+    pointer-events: none;
+    z-index: 46;
+    animation: sparkle-pop 0.7s ease-out forwards;
+  }
+  @keyframes sparkle-pop {
+    0%   { transform: translate(-50%, -50%) scale(0) rotate(0deg); opacity: 1; }
+    60%  { transform: translate(-50%, -50%) scale(1.3) rotate(90deg); opacity: 1; }
+    100% { transform: translate(-50%, -50%) scale(0.4) rotate(160deg); opacity: 0; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .sparkle { display: none; }
+  }
+</style>

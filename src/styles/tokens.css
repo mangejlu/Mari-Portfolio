@@ -1,0 +1,64 @@
+/* ============================================================
+   Design tokens — the whole palette lives here.
+   Chapter/project accents are set per-scope as --accent, and
+   every accented thing (nav dot, aura, wash, cursor) reads it.
+   ============================================================ */
+:root {
+  /* palette */
+  --sprout: #bfe28c;
+  --blush:  #f5afc9;
+  --peach:  #f5b48c;
+  --lilac:  #d6bef5;
+  --sky:    #afd9f5;
+  --butter: #fff2a8;
+
+  /* surfaces */
+  --bg: #fff8ef;
+  --ink: #3b332f;
+  --ink-soft: rgba(59, 51, 47, 0.62);
+  --ink-faint: rgba(59, 51, 47, 0.38);
+  --card: #ffffff;
+  --border: rgba(0, 0, 0, 0.07);
+  --overlay: rgba(30, 25, 20, 0.35);
+  --danger: #b5452f;
+
+  /* the live accent — chapters and projects override this */
+  --accent: var(--sprout);
+
+  /* the three aura colors — the aura reads these, chapters retint them */
+  --aura-1: var(--sprout);
+  --aura-2: var(--blush);
+  --aura-3: var(--peach);
+
+  /* type */
+  --font-display: 'Fraunces', Georgia, serif;
+  --font-body: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
+
+  /* rhythm */
+  --measure: 920px;
+  --gutter: 28px;
+  --radius-sm: 12px;
+  --radius: 16px;
+  --radius-lg: 20px;
+
+  /* motion — every duration flows through these so reduced-motion
+     can flatten them all in one place */
+  --dur-fast: 0.15s;
+  --dur: 0.3s;
+  --dur-slow: 0.6s;
+  --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+/* Chapter accent scopes — put data-chapter on a section or the body
+   and everything inside inherits the right color. */
+[data-chapter='work']   { --accent: var(--sprout); }
+[data-chapter='about']  { --accent: var(--blush); }
+[data-chapter='mural']  { --accent: var(--peach); }
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-fast: 0.01ms;
+    --dur: 0.01ms;
+    --dur-slow: 0.01ms;
+  }
+}

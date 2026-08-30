@@ -1,0 +1,174 @@
+---
+import { PALETTE } from '../../lib/mural';
+
+/**
+ * A wall of notes people leave behind.
+ *
+ * The first version made you claim a cell on a 1,800-square grid, which put a
+ * puzzle in front of a two-second gesture. This asks for the two things that
+ * actually carry meaning, a colour and a sentence, and spends the interaction
+ * budget on what happens after: the note lands on the wall in front of you,
+ * tilted and tinted like something actually pinned there.
+ */
+---
+
+<div class="book">
+  <form class="signer" id="signer">
+    <div class="signer__row">
+      <fieldset class="signer__colours">
+        <legend class="visually-hidden">Pick your colour</legend>
+        {PALETTE.map((c, i) => (
+          <label class="swatch" style={`--swatch:${c.hex}`} data-cursor-excited>
+            <input type="radio" name="colour" value={c.hex} checked={i === 0} />
+            <span class="visually-hidden">{c.name}</span>
+            <span class="swatch__chip" aria-hidden="true"></span>
+          </label>
+        ))}
+      </fieldset>
+
+      <input class="signer__name" id="gName" name="name" placeholder="your name"
+             maxlength="24" autocomplete="name" required />
+    </div>
+
+    <div class="signer__row">
+      <input class="signer__note" id="gNote" name="note"
+             placeholder="say something, anything" maxlength="80" />
+      <button class="signer__go" type="submit" id="gGo" data-cursor="leave it">
+        leave it
+      </button>
+    </div>
+
+    <p class="signer__error" id="gError" role="alert"></p>
+  </form>
+
+  <p class="book__count" id="gCount"></p>
+
+  <ul class="notes" id="notes" aria-live="polite" aria-label="Notes people have left"></ul>
+
+  <p class="book__empty" id="gEmpty" hidden>
+    Nobody has signed yet. Yours would be the first colour on the wall.
+  </p>
+</div>
+
+<style>
+  /* ---------------- the form ---------------- */
+  .signer { display: grid; gap: 10px; }
+  .signer__row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+
+  .signer__colours { display: flex; gap: 7px; border: none; padding: 0; margin: 0; }
+  .swatch { cursor: pointer; line-height: 0; }
+  .swatch input { position: absolute; opacity: 0; width: 0; height: 0; }
+  .swatch__chip {
+    display: block;
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    background: var(--swatch);
+    border: 2px solid transparent;
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.07);
+    transition: transform var(--dur) var(--ease), border-color var(--dur) var(--ease);
+  }
+  .swatch:hover .swatch__chip { transform: scale(1.13); }
+  .swatch input:checked ~ .swatch__chip { border-color: var(--ink); transform: scale(1.08); }
+  .swatch input:focus-visible ~ .swatch__chip { outline: 2px solid var(--ink); outline-offset: 3px; }
+
+  .signer__name, .signer__note {
+    font: inherit;
+    font-size: 14px;
+    padding: 11px 15px;
+    border-radius: 22px;
+    border: 1px solid var(--border);
+    background: var(--card);
+    color: var(--ink);
+  }
+  .signer__name { width: 170px; }
+  .signer__note { flex: 1; min-width: 210px; }
+  .signer__name:focus-visible, .signer__note:focus-visible {
+    outline: 2px solid var(--ink); outline-offset: 1px;
+  }
+
+  .signer__go {
+    font-size: 13px;
+    padding: 11px 22px;
+    border-radius: 22px;
+    border: 1px solid var(--ink);
+    background: var(--ink);
+    color: var(--bg);
+    transition: transform var(--dur) var(--ease);
+  }
+  .signer__go:hover:not([disabled]) { transform: translateY(-1px); }
+  .signer__go[disabled] { opacity: 0.55; }
+
+  .signer__error { font-size: 12.5px; color: var(--danger); }
+  .signer__error:empty { display: none; }
+
+  .book__count {
+    margin: 26px 0 14px;
+    font-size: 13px;
+    color: var(--ink-soft);
+  }
+  .book__empty { font-size: 14px; color: var(--ink-soft); }
+
+  /* ---------------- the wall ---------------- */
+  .notes {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+    gap: 14px;
+  }
+
+  .notes :global(.note) {
+    /* Each note is tinted by its own colour and tilted a degree or two, so the
+       wall reads as things pinned up rather than rows in a table. */
+    background: color-mix(in oklab, var(--note-colour) 34%, var(--card));
+    border: 1px solid color-mix(in oklab, var(--note-colour) 52%, var(--border));
+    border-radius: var(--radius);
+    padding: 18px 18px 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-height: 116px;
+    transform: rotate(var(--tilt));
+    transition: transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+  }
+  .notes :global(.note:hover) {
+    transform: rotate(0deg) translateY(-3px);
+    box-shadow: 0 14px 26px -16px rgba(0, 0, 0, 0.3);
+  }
+
+  .notes :global(.note__text) {
+    font-size: 14.5px;
+    line-height: 1.45;
+    flex: 1;
+  }
+  .notes :global(.note__meta) {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    font-size: 11.5px;
+    color: var(--ink-soft);
+  }
+  .notes :global(.note__who) { font-weight: 500; color: var(--ink); }
+
+  .notes :global(.note--mine) {
+    box-shadow: 0 0 0 2px var(--ink);
+  }
+  .notes :global(.note--fresh) {
+    animation: note-land 0.5s var(--ease) both;
+  }
+  @keyframes note-land {
+    from { opacity: 0; transform: rotate(var(--tilt)) translateY(-14px) scale(0.94); }
+    to   { opacity: 1; transform: rotate(var(--tilt)); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .notes :global(.note) { transform: none; }
+    .notes :global(.note:hover) { transform: none; }
+    .notes :global(.note--fresh) { animation: none; }
+  }
+
+  @media (max-width: 560px) {
+    .signer__name { width: 100%; }
+  }
+</style>

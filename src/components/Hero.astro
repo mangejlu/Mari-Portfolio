@@ -1,0 +1,262 @@
+---
+import { site, chapters } from '../data/site';
+
+/**
+ * The opening, rebuilt.
+ *
+ * The prototype gated the three paths behind "pick a colour that matches your
+ * mood". That asked for a decision before it had earned one, and the reward —
+ * a tinted dot — wasn't visible enough to be worth the tap.
+ *
+ * So the trade is inverted: the colour now comes *to* the visitor. All three
+ * chapters are on screen at first paint (a recruiter can be inside the work in
+ * one click), and colour becomes wayfinding instead of a quiz — hovering or
+ * focusing a chapter floods the whole aura with that chapter's colour and
+ * shows a one-line promise of what's inside. Left alone, the page breathes
+ * through the three by itself, so it's alive before you touch it.
+ */
+
+const PEEK: Record<string, string> = {
+  work: 'the problems, how i worked them out, and what shipped',
+  about: 'oil paint, a stage, and the rooms i keep showing up in',
+  mural: 'every visitor leaves one colour here. it stays.',
+};
+
+/** Each chapter re-tints the aura to its own three-colour chord. */
+const AURA: Record<string, [string, string, string]> = {
+  work: ['var(--sprout)', 'var(--butter)', 'var(--sky)'],
+  about: ['var(--blush)', 'var(--lilac)', 'var(--peach)'],
+  mural: ['var(--peach)', 'var(--butter)', 'var(--blush)'],
+};
+---
+
+<section class="hero" id="hero">
+  <div class="hero__inner on-aura">
+    <p class="hero__eyebrow">hey, welcome</p>
+
+    <h1 class="hero__title">
+      hi, i’m {site.wordmark}.<br />
+      i design solutions that<br />
+      make lives easier.
+    </h1>
+
+    <p class="hero__lead">
+      three ways in. take whichever one you came for.
+    </p>
+
+    <ul class="paths" id="paths">
+      {chapters.map((c) => (
+        <li>
+          <a
+            class="path"
+            href={c.href}
+            data-cursor="go"
+            data-chapter={c.id}
+            data-wash={c.accent}
+            data-aura={AURA[c.id].join('|')}
+            style={`--accent:${c.accent}`}
+          >
+            <span class="dot" aria-hidden="true"></span>
+            <span class="path__num">{c.num}</span>
+            <span class="path__label">{c.label}</span>
+          </a>
+        </li>
+      ))}
+    </ul>
+
+    <p class="hero__peek" id="peek" aria-live="polite">
+      {PEEK.work}
+    </p>
+
+  </div>
+
+  <p class="now">
+    <span class="dot" aria-hidden="true"></span>
+    <span>{site.now.text} · updated {site.now.updated}</span>
+  </p>
+</section>
+
+{/* Peek copy for the client script, without duplicating it in markup. */}
+<script type="application/json" id="peekData" set:html={JSON.stringify(PEEK)} is:inline />
+
+<style>
+  .hero {
+    position: relative;
+    z-index: 1;
+    min-height: 100svh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 96px var(--gutter) 0;
+  }
+  /* Fades the aura into the opaque content panel below. */
+  .hero::after {
+    content: '';
+    position: absolute;
+    inset: auto 0 0 0;
+    height: 140px;
+    background: linear-gradient(to bottom, transparent, var(--bg));
+    pointer-events: none;
+  }
+
+  .hero__inner {
+    max-width: 560px;
+    margin: auto;
+  }
+
+  .hero__eyebrow {
+    font-size: 13px;
+    letter-spacing: 0.08em;
+    color: var(--ink-soft);
+    margin-bottom: 14px;
+  }
+
+  .hero__title {
+    font-style: italic;
+    font-size: clamp(32px, 5.6vw, 54px);
+    line-height: 1.08;
+    margin-bottom: 22px;
+    text-wrap: balance;
+  }
+
+  .hero__lead {
+    font-size: 14px;
+    color: var(--ink-soft);
+    margin-bottom: 20px;
+  }
+
+  .paths {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .path {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    font-size: 13px;
+    padding: 11px 19px;
+    border-radius: 24px;
+    border: 1px solid var(--border);
+    background: var(--card);
+    text-decoration: none;
+    transition: transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+  }
+  .path:hover,
+  .path:focus-visible {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 24px -12px color-mix(in oklab, var(--accent) 80%, black);
+  }
+  .path__num {
+    color: var(--ink-faint);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .hero__peek {
+    font-size: 13.5px;
+    color: var(--ink-soft);
+    margin: 20px auto 0;
+    min-height: 2.6em;
+    max-width: 40ch;
+    transition: opacity var(--dur) var(--ease);
+  }
+  .hero__peek[data-swapping='true'] { opacity: 0; }
+
+  .now {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    max-width: var(--measure);
+    margin: 0 auto;
+    padding: 0 0 46px;
+    font-size: 13px;
+    color: var(--ink-soft);
+    text-align: left;
+  }
+
+  @media (max-width: 640px) {
+    .hero { padding-top: 84px; }
+    .path { padding: 10px 16px; }
+  }
+</style>
+
+<script>
+  import { prefersReducedMotion } from '../scripts/env';
+  import { releaseTint } from '../scripts/tint';
+
+  function initHero() {
+    const paths = document.getElementById('paths');
+    const peek = document.getElementById('peek');
+    const data = document.getElementById('peekData');
+    if (!paths || !peek || !data) return;
+
+    const copy: Record<string, string> = JSON.parse(data.textContent || '{}');
+    const links = Array.from(paths.querySelectorAll<HTMLAnchorElement>('.path'));
+    if (!links.length) return;
+
+    const reduced = prefersReducedMotion();
+
+    let idleTimer: number | undefined;
+    let cycle = 0;
+    let held = false;
+
+    // Colour is handled by the shared tint module (scripts/tint.ts) via the
+    // data-aura attribute — this only owns the copy swap and the idle cycle.
+    const show = (link: HTMLAnchorElement, instant = false) => {
+      const id = link.dataset.chapter ?? '';
+      const next = copy[id] ?? '';
+      if (peek.textContent === next) return;
+      if (instant || reduced) {
+        peek.textContent = next;
+        return;
+      }
+      peek.dataset.swapping = 'true';
+      window.setTimeout(() => {
+        peek.textContent = next;
+        peek.dataset.swapping = 'false';
+      }, 180);
+    };
+
+    // Hover and keyboard focus are the same gesture here.
+    for (const link of links) {
+      link.addEventListener('pointerenter', () => { held = true; show(link); });
+      link.addEventListener('focus', () => { held = true; show(link); });
+      link.addEventListener('pointerleave', () => { held = false; });
+      link.addEventListener('blur', () => { held = false; });
+    }
+
+    show(links[0], true);
+
+    // Left alone, drift through the chapters so the page has a pulse of its
+    // own. Reduced motion keeps it parked on the first chapter.
+    if (!reduced) {
+      idleTimer = window.setInterval(() => {
+        if (held || document.hidden) return;
+        cycle = (cycle + 1) % links.length;
+        const link = links[cycle];
+        show(link);
+        // Nothing is hovered during the idle cycle, so drive the tint directly.
+        const colors = (link.dataset.aura ?? '').split('|');
+        colors.forEach((c, i) => document.body.style.setProperty(`--aura-${i + 1}`, c));
+        document.body.style.setProperty('--accent', link.style.getPropertyValue('--accent'));
+      }, 4600);
+    }
+
+    document.addEventListener(
+      'astro:before-swap',
+      () => { clearInterval(idleTimer); releaseTint(); },
+      { once: true },
+    );
+  }
+
+  initHero();
+  document.addEventListener('astro:page-load', initHero);
+</script>

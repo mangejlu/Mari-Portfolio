@@ -1,0 +1,88 @@
+---
+interface Props { icon: string; label: string; back: string }
+const { icon, label, back } = Astro.props;
+
+/**
+ * A real <button>, not a div with a click handler — so it's keyboard
+ * operable and announces its state for free. aria-expanded carries the
+ * flip; the 3D transform is decoration on top of that.
+ */
+---
+
+<button class="flip" type="button" aria-expanded="false" data-cursor="turn it over">
+  <span class="flip__inner">
+    <span class="flip__face flip__front">
+      <span class="flip__icon" aria-hidden="true">{icon}</span>
+      <span class="flip__label">{label}</span>
+    </span>
+    <span class="flip__face flip__back">{back}</span>
+  </span>
+</button>
+
+<style>
+  .flip {
+    width: 100%;
+    aspect-ratio: 1;
+    padding: 0;
+    border: none;
+    background: none;
+    perspective: 900px;
+  }
+
+  .flip__inner {
+    position: relative;
+    display: block;
+    width: 100%;
+    height: 100%;
+    transition: transform 0.5s var(--ease);
+    transform-style: preserve-3d;
+  }
+  .flip[aria-expanded='true'] .flip__inner { transform: rotateY(180deg); }
+
+  .flip__face {
+    position: absolute;
+    inset: 0;
+    backface-visibility: hidden;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    background: var(--card);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 16px;
+    transition: border-color var(--dur) var(--ease);
+  }
+  .flip:hover .flip__face { border-color: color-mix(in oklab, var(--accent) 45%, var(--border)); }
+
+  .flip__icon { font-size: 26px; margin-bottom: 10px; }
+  .flip__label { font-size: 12.5px; color: var(--ink-soft); line-height: 1.35; }
+
+  .flip__back {
+    transform: rotateY(180deg);
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: var(--ink);
+  }
+
+  /* Without 3D, swap faces instantly instead of animating a rotation. */
+  @media (prefers-reduced-motion: reduce) {
+    .flip__inner { transition: none; }
+  }
+</style>
+
+<script>
+  function initFlips() {
+    for (const card of document.querySelectorAll<HTMLButtonElement>('.flip')) {
+      if (card.dataset.wired === 'true') continue;
+      card.dataset.wired = 'true';
+      card.addEventListener('click', () => {
+        const open = card.getAttribute('aria-expanded') === 'true';
+        card.setAttribute('aria-expanded', String(!open));
+      });
+    }
+  }
+  initFlips();
+  document.addEventListener('astro:page-load', initFlips);
+</script>

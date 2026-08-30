@@ -1,0 +1,82 @@
+---
+import { ClientRouter } from 'astro:transitions';
+import { Font } from 'astro:assets';
+import '../styles/global.css';
+
+import AuraBackground from '../components/AuraBackground.astro';
+import CustomCursor from '../components/CustomCursor.astro';
+import ColorWash from '../components/ColorWash.astro';
+import SiteNav from '../components/SiteNav.astro';
+import Toast from '../components/Toast.astro';
+import { site, type ChapterId } from '../data/site';
+
+interface Props {
+  title?: string;
+  description?: string;
+  /** Sets the page accent + nav state. */
+  chapter?: ChapterId | 'home';
+  /** Override the aura's three colours for this page. */
+  aura?: [string, string, string];
+}
+
+const {
+  title,
+  description = site.description,
+  chapter = 'home',
+  aura,
+} = Astro.props;
+
+const pageTitle = title ? `${title} · ${site.name}` : site.title;
+const auraStyle = aura
+  ? `--aura-1:${aura[0]};--aura-2:${aura[1]};--aura-3:${aura[2]};`
+  : undefined;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <title>{pageTitle}</title>
+    <meta name="description" content={description} />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <meta name="theme-color" content="#FFF8EF" />
+    <link rel="canonical" href={new URL(Astro.url.pathname, Astro.site)} />
+
+    <Font cssVariable="--font-display" preload />
+    <Font cssVariable="--font-body" preload />
+
+    <ClientRouter />
+  </head>
+
+  <body data-chapter={chapter === 'home' ? undefined : chapter} style={auraStyle}>
+    <a class="skip-link" href="#main">skip to content</a>
+
+    <AuraBackground />
+    <CustomCursor />
+    <ColorWash />
+    <Toast />
+
+    <SiteNav current={chapter} />
+
+    <main id="main">
+      <slot />
+    </main>
+
+    <script>
+      import { initReveals } from '../scripts/reveal';
+      import { initTint } from '../scripts/tint';
+
+      const boot = () => {
+        initReveals();
+        // Re-captured per page: each route declares its own aura palette.
+        initTint();
+      };
+      boot();
+      document.addEventListener('astro:page-load', boot);
+    </script>
+  </body>
+</html>

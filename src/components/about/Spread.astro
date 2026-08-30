@@ -1,0 +1,182 @@
+---
+import Picture from '../Picture.astro';
+import { pieces } from '../../data/about';
+
+/**
+ * Everything at once, nothing in a box except the photographs.
+ *
+ * The bento failed because every item was a bordered card, so nine unrelated
+ * things looked like nine identical tiles. Here the words sit straight on the
+ * page and only the pictures are objects, which is the whole difference
+ * between a grid and a spread.
+ *
+ * Columns rather than a placed grid: each piece is exactly as tall as it needs
+ * to be and the browser balances them, so there are no leftover holes and
+ * nothing is cropped. Photo shapes vary on purpose, since equal rectangles are
+ * what made it read as a grid in the first place.
+ */
+---
+
+<div class="spread">
+  {pieces.map((piece) => (
+    piece.kind === 'photo' ? (
+      <figure class:list={['piece', 'shot', `shot--${piece.shape}`]}>
+        <div class="shot__frame" style={piece.focus ? `--focus:${piece.focus}` : undefined}>
+          <Picture name={piece.name} alt={piece.alt} sizes="(max-width: 700px) 100vw, 300px" />
+        </div>
+        <figcaption>
+          <span class="shot__label">{piece.label}</span>
+          {piece.note && <span class="shot__note">{piece.note}</span>}
+        </figcaption>
+      </figure>
+    ) : (
+      <div class="piece note">
+        <p class="note__label">{piece.label}</p>
+        <h2 class="note__title">{piece.title}</h2>
+
+        {piece.places && (
+          <ul class="places">
+            {piece.places.map((p) => (
+              <li>
+                <span class="places__name">{p.place}</span>
+                <span class="places__note">{p.note}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        {piece.books && (
+          <ul class="books">
+            <li><span class="books__when">now</span><span class="books__name">{piece.books.now}</span></li>
+            <li><span class="books__when">always</span><span class="books__name">{piece.books.forever}</span></li>
+          </ul>
+        )}
+
+        {piece.body && <p class="note__body">{piece.body}</p>}
+      </div>
+    )
+  ))}
+</div>
+
+<style>
+  .spread {
+    columns: 3;
+    column-gap: 30px;
+  }
+  .piece {
+    break-inside: avoid;
+    margin: 0 0 34px;
+  }
+
+  /* ---- photographs: the only objects on the page ---- */
+  .shot__frame {
+    border-radius: var(--radius);
+    overflow: hidden;
+    background: var(--card);
+  }
+  .shot--tall .shot__frame { aspect-ratio: 3 / 4; }
+  .shot--wide .shot__frame { aspect-ratio: 4 / 3; }
+  .shot--square .shot__frame { aspect-ratio: 1; }
+
+  .shot :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: var(--focus, center);
+    display: block;
+    transition: transform 0.7s var(--ease);
+  }
+  .shot:hover :global(img) { transform: scale(1.03); }
+
+  .shot figcaption {
+    display: grid;
+    gap: 2px;
+    margin-top: 10px;
+  }
+  .shot__label { font-size: 13.5px; font-weight: 500; line-height: 1.3; }
+  .shot__note { font-size: 12.5px; line-height: 1.45; color: var(--ink-soft); }
+
+  /* ---- words: no card, no border, no background ---- */
+  .note__label {
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-bottom: 6px;
+  }
+  .note__title {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: 23px;
+    line-height: 1.08;
+    text-wrap: balance;
+  }
+  .note__body {
+    font-size: 13px;
+    line-height: 1.55;
+    color: var(--ink-soft);
+    margin-top: 10px;
+  }
+
+  .places {
+    list-style: none;
+    margin: 12px 0 0;
+    padding: 0;
+    display: grid;
+    gap: 9px;
+  }
+  .places li {
+    display: grid;
+    gap: 1px;
+    padding-left: 13px;
+    position: relative;
+  }
+  .places li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0.55em;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+  /* Only the current place is solid; the earlier ones are outlines. */
+  .places li:not(:last-child)::before {
+    background: transparent;
+    box-shadow: inset 0 0 0 1.5px color-mix(in oklab, var(--ink) 38%, transparent);
+  }
+  .places__name { font-size: 14.5px; font-weight: 500; }
+  .places__note { font-size: 12px; line-height: 1.4; color: var(--ink-soft); }
+
+  .books {
+    list-style: none;
+    margin: 12px 0 0;
+    padding: 0;
+    display: grid;
+    gap: 8px;
+  }
+  .books li { display: grid; }
+  .books__when {
+    font-size: 9.5px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+  .books__name {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: 17px;
+    line-height: 1.15;
+  }
+
+  @media (max-width: 900px) { .spread { columns: 2; column-gap: 24px; } }
+  @media (max-width: 560px) {
+    .spread { columns: 1; }
+    .piece { margin-bottom: 28px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .shot:hover :global(img) { transform: none; }
+  }
+</style>

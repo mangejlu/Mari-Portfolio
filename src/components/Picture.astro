@@ -1,0 +1,37 @@
+---
+import { media, type MediaName } from '../data/media';
+
+interface Props {
+  name: MediaName;
+  alt: string;
+  sizes: string;
+  class?: string;
+  /** Above-the-fold images should not be lazy. */
+  eager?: boolean;
+}
+const { name, alt, sizes, class: className, eager = false } = Astro.props;
+
+/**
+ * Every image on the site goes through here.
+ *
+ * The srcset is built from the generated manifest rather than assumed widths,
+ * because a source narrower than the largest target never produced that file
+ * and pointing at it broke the image for anyone on a high-DPI screen. Real
+ * width/height are set too, so nothing reflows while images load.
+ */
+const entry = media[name];
+const srcset = entry.variants.map((v) => `/media/${v.file} ${v.width}w`).join(', ');
+const largest = entry.variants.at(-1)!;
+---
+
+<img
+  class={className}
+  src={`/media/${largest.file}`}
+  srcset={srcset}
+  sizes={sizes}
+  width={largest.width}
+  height={largest.height}
+  alt={alt}
+  loading={eager ? 'eager' : 'lazy'}
+  decoding="async"
+/>

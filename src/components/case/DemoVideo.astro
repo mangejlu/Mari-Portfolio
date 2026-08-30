@@ -1,0 +1,113 @@
+---
+interface Props { name: string; label: string; caption?: string }
+const { name, label, caption } = Astro.props;
+
+/**
+ * Click to play, never autoload.
+ *
+ * The source was a 40MB GIF, which is a screen recording wearing the wrong
+ * file format. As H.264 it is 3MB, and behind a poster it costs a visitor
+ * nothing at all unless they ask to watch it. `preload="none"` is what makes
+ * that true; without it the browser starts pulling the video on page load.
+ */
+---
+<figure class="demo">
+  <div class="demo__frame" data-demo>
+    <video
+      class="demo__video"
+      poster={`/media/${name}-poster.webp`}
+      preload="none"
+      playsinline
+      loop
+      controls
+      data-demo-video
+    >
+      <source src={`/media/${name}-demo.mp4`} type="video/mp4" />
+    </video>
+
+    <button class="demo__play" type="button" data-demo-play data-cursor="play it">
+      <span class="demo__triangle" aria-hidden="true"></span>
+      <span>{label}</span>
+    </button>
+  </div>
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>
+
+<style>
+  .demo { margin: 0; }
+  .demo__frame {
+    position: relative;
+    border-radius: var(--radius);
+    overflow: hidden;
+    border: 1px solid var(--border);
+    background: var(--ink);
+    line-height: 0;
+  }
+  .demo__video { width: 100%; height: auto; display: block; }
+
+  .demo__play {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    border: none;
+    background: color-mix(in oklab, var(--ink) 34%, transparent);
+    color: #fff;
+    font-size: 13px;
+    line-height: 1.4;
+    transition: background var(--dur) var(--ease), opacity var(--dur) var(--ease);
+  }
+  .demo__play:hover { background: color-mix(in oklab, var(--ink) 22%, transparent); }
+  .demo__frame[data-playing='true'] .demo__play { opacity: 0; pointer-events: none; }
+
+  .demo__triangle {
+    width: 54px; height: 54px;
+    border-radius: 50%;
+    background: var(--bg);
+    display: grid;
+    place-items: center;
+    transition: transform var(--dur) var(--ease);
+  }
+  .demo__triangle::after {
+    content: '';
+    border-left: 15px solid var(--ink);
+    border-top: 9px solid transparent;
+    border-bottom: 9px solid transparent;
+    margin-left: 4px;
+  }
+  .demo__play:hover .demo__triangle { transform: scale(1.07); }
+
+  .demo figcaption {
+    margin-top: 9px;
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: var(--ink-soft);
+  }
+</style>
+
+<script>
+  function initDemos() {
+    for (const frame of document.querySelectorAll<HTMLElement>('[data-demo]')) {
+      if (frame.dataset.wired === 'true') continue;
+      frame.dataset.wired = 'true';
+
+      const video = frame.querySelector<HTMLVideoElement>('[data-demo-video]');
+      const play = frame.querySelector<HTMLButtonElement>('[data-demo-play]');
+      if (!video || !play) continue;
+
+      play.addEventListener('click', () => {
+        frame.dataset.playing = 'true';
+        video.play();
+      });
+      video.addEventListener('pause', () => {
+        if (video.currentTime === 0) frame.dataset.playing = 'false';
+      });
+    }
+  }
+  initDemos();
+  document.addEventListener('astro:page-load', initDemos);
+</script>

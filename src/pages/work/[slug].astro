@@ -1,0 +1,530 @@
+---
+import { getCollection, render, type CollectionEntry } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Reveal from '../../components/Reveal.astro';
+import StatBand from '../../components/case/StatBand.astro';
+import ShiftToggle from '../../components/case/ShiftToggle.astro';
+import InsightList from '../../components/case/InsightList.astro';
+import QuestionList from '../../components/case/QuestionList.astro';
+import PersonaTabs from '../../components/case/PersonaTabs.astro';
+import ScreenList from '../../components/case/ScreenList.astro';
+import CaseRail from '../../components/case/CaseRail.astro';
+import Shot from '../../components/case/Shot.astro';
+import DemoVideo from '../../components/case/DemoVideo.astro';
+
+export async function getStaticPaths() {
+  const entries = await getCollection('work');
+  return entries.map((entry) => ({ params: { slug: entry.id }, props: { entry } }));
+}
+
+interface Props { entry: CollectionEntry<'work'> }
+const { entry } = Astro.props;
+const d = entry.data;
+const { Content } = await render(entry);
+
+// The "next" study is named in frontmatter, not inferred from position —
+// curation beats a queue, and it keeps working when the order changes.
+const all = await getCollection('work');
+const next = d.next ? all.find((e) => e.id === d.next) : undefined;
+
+
+// The rail only lists sections this study actually has.
+const sections = [
+  { id: 'problem', label: 'Problem' },
+  { id: 'research', label: 'Research' },
+  d.shifts?.length ? { id: 'changed', label: 'What changed' } : null,
+  d.personas?.length ? { id: 'users', label: 'Users' } : null,
+  d.demo || d.gallery?.length ? { id: 'see', label: 'See it' } : null,
+  d.screens?.length ? { id: 'screens', label: 'Screens' } : null,
+  { id: 'outcome', label: 'Outcome' },
+].filter(Boolean) as Array<{ id: string; label: string }>;
+
+// The prototype is the thing people came for, so it gets promoted out of the
+// link list into the hero button and the sticky rail.
+const primary = d.links?.[0] ?? null;
+const secondaryLinks = d.links?.slice(1) ?? [];
+---
+
+<BaseLayout
+  title={d.title}
+  description={d.summary}
+  chapter="work"
+  aura={d.aura}
+>
+  <article class="case" style={`--accent:${d.accent}`}>
+    <!-- ── hero ─────────────────────────────────────────────── -->
+    <header class="case__hero">
+      <div class="shell on-aura on-aura--start">
+        <a class="case__back" href="/work/" data-cursor="back" data-chapter="work">← chapter 01 · the work</a>
+
+        <p class="case__eyebrow">{d.meta.client}</p>
+        <h1 class="case__title">{d.title}</h1>
+        <p class="case__tagline">{d.tagline}</p>
+
+        <div class="case__intro"><Content /></div>
+
+        <dl class="case__meta">
+          <div><dt>Role</dt><dd>{d.meta.role.join(' · ')}</dd></div>
+          <div><dt>Team</dt><dd>{d.meta.team}</dd></div>
+          <div><dt>Type</dt><dd>{d.meta.type}</dd></div>
+          <div><dt>Year</dt><dd>{d.meta.year}</dd></div>
+          <div><dt>Tools</dt><dd>{d.meta.tools.join(' · ')}</dd></div>
+        </dl>
+
+        {primary || secondaryLinks.length ? (
+          <p class="case__links">
+            {primary ? (
+              <a
+                class="case__primary"
+                href={primary.href}
+                data-cursor={primary.cursor ?? 'open it'}
+                target={primary.href.startsWith('http') ? '_blank' : undefined}
+                rel={primary.href.startsWith('http') ? 'noopener noreferrer' : undefined}
+              >{primary.label} ↗</a>
+            ) : null}
+            {secondaryLinks.map((l) => (
+              <a href={l.href} data-cursor={l.cursor ?? 'open'} target={l.href.startsWith('http') ? '_blank' : undefined} rel={l.href.startsWith('http') ? 'noopener noreferrer' : undefined}>{l.label} ↗</a>
+            ))}
+          </p>
+        ) : null}
+      </div>
+    </header>
+
+    <div class="content-panel">
+      <CaseRail title={d.title} sections={sections} cta={primary ? { label: primary.label, href: primary.href } : null} />
+
+      {d.stats?.length ? (
+        <section class="shell case__section case__section--tight">
+          <Reveal><StatBand stats={d.stats} /></Reveal>
+        </section>
+      ) : null}
+
+      <!-- ── the problem ────────────────────────────────────── -->
+      <section id="problem" class="shell case__section">
+        <Reveal><p class="case__kicker">The problem</p></Reveal>
+        <Reveal><p class="case__thesis">{d.problem.thesis}</p></Reveal>
+
+        <div class="case__split">
+          <Reveal>
+            <div class="hmw">
+              <p class="hmw__label">How might we</p>
+              <p class="hmw__text">{d.problem.hmw}</p>
+            </div>
+          </Reveal>
+          {d.problem.questions?.length ? (
+            <Reveal><QuestionList questions={d.problem.questions} /></Reveal>
+          ) : null}
+        </div>
+      </section>
+
+      <!-- ── research ───────────────────────────────────────── -->
+      <section id="research" class="shell case__section">
+        <Reveal><p class="case__kicker">Research</p></Reveal>
+        <Reveal><h2 class="case__h2">{d.researchHeading ?? 'What I did, and what it told me'}</h2></Reveal>
+
+        <Reveal>
+          <ul class="methods">
+            {d.research.methods.map((m) => (
+              <li>{m.count && <span class="methods__count">{m.count}</span>}{m.label}</li>
+            ))}
+          </ul>
+        </Reveal>
+
+        {d.research.quotes?.length ? (
+          <Reveal>
+            <ul class="quotes">
+              {d.research.quotes.map((q) => <li>“{q}”</li>)}
+            </ul>
+          </Reveal>
+        ) : null}
+
+        <Reveal><InsightList insights={d.research.insights} /></Reveal>
+      </section>
+
+      <!-- ── the turn ───────────────────────────────────────── -->
+      {d.shifts?.length ? (
+        <section id="changed" class="shell case__section">
+          <Reveal><p class="case__kicker">What changed</p></Reveal>
+          <Reveal><h2 class="case__h2">Flip the switch.</h2></Reveal>
+          <Reveal><ShiftToggle shifts={d.shifts} /></Reveal>
+        </section>
+      ) : null}
+
+      {d.demo || d.gallery?.length ? (
+        <section id="see" class="shell case__section">
+          <Reveal><p class="case__kicker">See it</p></Reveal>
+          {d.demo ? (
+            <Reveal><DemoVideo name={d.demo.name} label={d.demo.label} caption={d.demo.caption} /></Reveal>
+          ) : null}
+          {d.gallery?.length ? (
+            <div class="gallery">
+              {d.gallery.map((g, i) => (
+                <Reveal delay={i * 60}>
+                  <Shot name={g.name} alt={g.alt} caption={g.caption} wide />
+                </Reveal>
+              ))}
+            </div>
+          ) : null}
+        </section>
+      ) : null}
+
+      <!-- ── who it's for ───────────────────────────────────── -->
+      {d.personas?.length ? (
+        <section id="users" class="shell case__section">
+          <Reveal><p class="case__kicker">Who it’s for</p></Reveal>
+          <Reveal><h2 class="case__h2">Different people, same truth</h2></Reveal>
+          <Reveal><PersonaTabs personas={d.personas} /></Reveal>
+        </section>
+      ) : null}
+
+      <!-- ── principles ─────────────────────────────────────── -->
+      {d.principles?.length ? (
+        <section class="shell case__section">
+          <Reveal><p class="case__kicker">Design principles</p></Reveal>
+          <Reveal>
+            <ol class="principles">
+              {d.principles.map((p, i) => (
+                <li>
+                  <span class="principles__num">{String(i + 1).padStart(2, '0')}</span>
+                  <span class="principles__title">{p.title}</span>
+                  <span class="principles__body">{p.body}</span>
+                </li>
+              ))}
+            </ol>
+          </Reveal>
+        </section>
+      ) : null}
+
+      <!-- ── screens ────────────────────────────────────────── -->
+      {d.screens?.length ? (
+        <section id="screens" class="shell case__section">
+          <Reveal><p class="case__kicker">Key screens</p></Reveal>
+          <Reveal><h2 class="case__h2">From friction to flow</h2></Reveal>
+          <Reveal><ScreenList screens={d.screens} /></Reveal>
+        </section>
+      ) : null}
+
+      <!-- ── honest close ───────────────────────────────────── -->
+      <section id="outcome" class="shell case__section">
+        <Reveal><p class="case__kicker">{d.outcome ? 'Outcome' : 'Where it is now'}</p></Reveal>
+
+        {d.status ? (
+          <Reveal>
+            <div class="status">
+              <span class="status__dot" aria-hidden="true"></span>
+              <span class="status__label">{d.status.label}</span>
+              <span class="status__body">{d.status.body}</span>
+            </div>
+          </Reveal>
+        ) : null}
+
+        {d.outcome ? (
+        <div class="outcome">
+          <Reveal>
+            <div class="outcome__col" data-tone="good">
+              <p class="outcome__h">What worked</p>
+              <ul>{d.outcome.wentWell.map((t) => <li>{t}</li>)}</ul>
+            </div>
+          </Reveal>
+          <Reveal delay={70}>
+            <div class="outcome__col" data-tone="warn">
+              <p class="outcome__h">What I’d do better</p>
+              <ul>{d.outcome.improve.map((t) => <li>{t}</li>)}</ul>
+            </div>
+          </Reveal>
+          <Reveal delay={140}>
+            <div class="outcome__col" data-tone="next">
+              <p class="outcome__h">Next</p>
+              <ul>{d.outcome.next.map((t) => <li>{t}</li>)}</ul>
+            </div>
+          </Reveal>
+        </div>
+        ) : null}
+
+        <Reveal><blockquote class="reflection">{d.reflection}</blockquote></Reveal>
+      </section>
+
+
+      <!-- ── next ───────────────────────────────────────────── -->
+      <section class="shell case__section case__next-wrap">
+        {next ? (
+          <a class="case__next" href={`/work/${next.id}/`} data-cursor="keep going" data-wash={next.data.accent} style={`--accent:${next.data.accent}`}>
+            <span class="case__next-label">Next case study</span>
+            <span class="case__next-title">{next.data.title}</span>
+            <span class="case__next-tag">{next.data.tagline}</span>
+          </a>
+        ) : null}
+        <p class="case__escape">
+          Or step out of the work. <a href="/about/" data-chapter="about" data-cursor="hi">chapter 02, get to know me →</a>
+        </p>
+      </section>
+    </div>
+  </article>
+</BaseLayout>
+
+<style>
+  .case__hero { position: relative; z-index: 1; padding: 120px 0 70px; }
+  .case__hero::after {
+    content: '';
+    position: absolute; inset: auto 0 0 0; height: 120px;
+    background: linear-gradient(to bottom, transparent, var(--bg));
+    pointer-events: none;
+  }
+
+  .case__back {
+    display: inline-block;
+    font-size: 12.5px;
+    color: var(--ink-soft);
+    text-decoration: none;
+    margin-bottom: 30px;
+  }
+  .case__back:hover { color: var(--ink); }
+
+  .case__eyebrow {
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin-bottom: 12px;
+  }
+  .case__title {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: clamp(44px, 8vw, 78px);
+    line-height: 0.98;
+    margin-bottom: 16px;
+  }
+  .case__tagline {
+    font-size: clamp(18px, 2.6vw, 23px);
+    line-height: 1.3;
+    max-width: 22ch;
+    text-wrap: balance;
+    margin-bottom: 22px;
+  }
+  .case__intro :global(p) {
+    font-size: 15.5px;
+    line-height: 1.65;
+    color: var(--ink-soft);
+    max-width: 56ch;
+  }
+  /* The intro can run to more than one paragraph; without this they collapse
+     into one block of text. */
+  .case__intro :global(p + p) { margin-top: 14px; }
+
+  .case__meta {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(155px, 1fr));
+    gap: 18px 24px;
+    margin: 36px 0 0;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+  }
+  .case__meta dt {
+    font-size: 10.5px;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-bottom: 5px;
+  }
+  .case__meta dd { margin: 0; font-size: 13px; line-height: 1.45; }
+
+  .case__links { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; margin-top: 26px; font-size: 13.5px; }
+  .case__links a { text-decoration: underline; text-underline-offset: 3px; }
+  .case__primary {
+    text-decoration: none;
+    background: var(--ink);
+    color: var(--bg);
+    padding: 11px 20px;
+    border-radius: 24px;
+    font-size: 13.5px;
+    transition: transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+  }
+  .case__primary:hover,
+  .case__primary:focus-visible {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 24px -14px color-mix(in oklab, var(--accent) 90%, black);
+  }
+
+  /* Sections are scroll targets for the rail, so keep their headings clear
+     of the sticky bar. */
+  .case__section { scroll-margin-top: 58px; }
+
+  .case__section { padding: 64px var(--gutter); }
+  .case__section--tight { padding-top: 0; }
+
+  .case__kicker {
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--accent);
+    filter: brightness(0.8);
+    margin-bottom: 14px;
+  }
+  .case__h2 {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: clamp(24px, 3.6vw, 33px);
+    line-height: 1.1;
+    margin-bottom: 26px;
+  }
+  .case__thesis {
+    font-family: var(--font-display);
+    font-size: clamp(24px, 4vw, 38px);
+    line-height: 1.18;
+    max-width: 20ch;
+    text-wrap: balance;
+    margin-bottom: 34px;
+  }
+
+  .case__split {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+    align-items: start;
+  }
+
+  .hmw {
+    background: var(--ink);
+    color: var(--bg);
+    border-radius: var(--radius);
+    padding: 26px;
+    height: 100%;
+  }
+  .hmw__label {
+    font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--accent); margin-bottom: 12px;
+  }
+  .hmw__text { font-size: 17px; line-height: 1.42; }
+
+  .methods { list-style: none; margin: 0 0 26px; padding: 0; display: grid; gap: 8px; }
+  .methods li {
+    display: flex; align-items: baseline; gap: 12px;
+    font-size: 14px; line-height: 1.45; color: var(--ink-soft);
+    padding: 11px 16px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+  }
+  .methods__count {
+    flex: none;
+    font-family: var(--font-display);
+    font-size: 15px;
+    color: var(--accent);
+    filter: brightness(0.82);
+    min-width: 2.5ch;
+  }
+
+  .quotes { list-style: none; margin: 0 0 30px; padding: 0; display: grid; gap: 12px; }
+  .quotes li {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: clamp(17px, 2.4vw, 21px);
+    line-height: 1.35;
+    padding-left: 18px;
+    border-left: 2px solid var(--accent);
+    color: var(--ink);
+  }
+
+  .principles { list-style: none; margin: 0; padding: 0; display: grid; gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+  .principles li { background: var(--card); padding: 20px 22px; display: grid; grid-template-columns: auto 1fr; gap: 4px 14px; }
+  .principles__num { font-size: 11px; color: var(--accent); filter: brightness(0.85); grid-row: 1 / 3; }
+  .principles__title { font-size: 16px; font-weight: 500; }
+  .principles__body { font-size: 13.5px; line-height: 1.55; color: var(--ink-soft); }
+
+  .outcome {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 14px;
+  }
+  .outcome > :global(.reveal) { display: flex; }
+  .outcome__col {
+    flex: 1;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 22px;
+  }
+  .outcome__h { font-size: 11px; letter-spacing: 0.07em; text-transform: uppercase; margin-bottom: 14px; }
+  .outcome__col[data-tone='good'] .outcome__h { color: #3d8a4e; }
+  .outcome__col[data-tone='warn'] .outcome__h { color: #a8722a; }
+  .outcome__col[data-tone='next'] .outcome__h { color: #40719e; }
+  .outcome__col ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 11px; }
+  .outcome__col li {
+    position: relative; padding-left: 16px;
+    font-size: 13.5px; line-height: 1.55; color: var(--ink-soft);
+  }
+  .outcome__col li::before {
+    content: ''; position: absolute; left: 0; top: 0.62em;
+    width: 5px; height: 5px; border-radius: 50%; background: currentColor; opacity: 0.5;
+  }
+
+  .status {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 4px 12px;
+    align-items: baseline;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: var(--radius);
+    padding: 22px 24px;
+  }
+  .status__dot {
+    width: 9px; height: 9px; border-radius: 50%;
+    background: var(--accent);
+    grid-row: 1 / 3;
+    align-self: center;
+    /* A live project should feel live. */
+    animation: status-pulse 2.4s ease-in-out infinite;
+  }
+  @keyframes status-pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50%      { opacity: .45; transform: scale(.82); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .status__dot { animation: none; }
+  }
+  .status__label { font-size: 15px; font-weight: 500; }
+  .status__body { font-size: 14px; line-height: 1.6; color: var(--ink-soft); max-width: 60ch; }
+
+  .reflection {
+    margin: 34px 0 0;
+    padding-left: 22px;
+    border-left: 2px solid var(--accent);
+    font-family: var(--font-display);
+    font-size: clamp(18px, 2.7vw, 23px);
+    line-height: 1.42;
+    max-width: 46ch;
+  }
+
+
+  .gallery { display: grid; gap: 22px; margin-top: 22px; }
+
+  .case__next-wrap { padding-bottom: 90px; }
+  .case__next {
+    display: block;
+    text-decoration: none;
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: var(--radius);
+    background: var(--card);
+    padding: 28px;
+    transition: transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+  }
+  .case__next:hover,
+  .case__next:focus-visible {
+    transform: translateY(-3px);
+    box-shadow: 0 18px 34px -20px color-mix(in oklab, var(--accent) 90%, black);
+  }
+  .case__next-label { display: block; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-faint); margin-bottom: 8px; }
+  .case__next-title { display: block; font-family: var(--font-display); font-style: italic; font-size: 30px; line-height: 1; margin-bottom: 8px; }
+  .case__next-tag { display: block; font-size: 14px; color: var(--ink-soft); max-width: 44ch; }
+
+  .case__escape { margin-top: 20px; font-size: 13.5px; color: var(--ink-soft); }
+  .case__escape a { text-decoration: underline; text-underline-offset: 3px; }
+
+  @media (max-width: 640px) {
+    .case__hero { padding-top: 96px; }
+    .case__section { padding: 48px var(--gutter); }
+  }
+</style>

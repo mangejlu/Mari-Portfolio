@@ -1,0 +1,309 @@
+---
+/**
+ * The aura, as a flowing colour field.
+ *
+ * v1 used four masked circles. The problem was structural: a masked circle
+ * has an edge, and no amount of softening hides four of them from the eye —
+ * you read the shapes, not the colour.
+ *
+ * So this paints into a *deliberately tiny* canvas (about 220px on its long
+ * edge) and lets the GPU stretch it across the viewport. Bilinear upscaling
+ * an already-smooth gradient field is what destroys the circles: by the time
+ * one source is blown up 10x it has no discernible edge left, and six of them
+ * overlapping read as one continuous wash.
+ *
+ * That trick is also why this is cheap. ~25k pixels per frame is nothing,
+ * where a real blur on a full-viewport layer is the single most expensive
+ * thing a page can ask a compositor to do. Small canvas + GPU stretch beats
+ * `filter: blur()` on every axis that matters.
+ *
+ * Motion: every source chases the pointer at a different rate, so they string
+ * out into a trailing comet rather than moving as one rigid cluster. Each also
+ * rides its own slow ellipse, so the field keeps churning when the pointer
+ * holds still.
+ */
+---
+
+<canvas class="aura" id="aura" data-tier="static" aria-hidden="true" transition:persist="aura"></canvas>
+
+<style>
+  .aura {
+    position: fixed;
+    inset: 0;
+    z-index: -2;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    /* The canvas backing store is tiny; this is the stretch that smooths it. */
+    display: block;
+  }
+</style>
+
+<script>
+  import { motionTier, rafLoop, onCapabilityChange, afterFirstLayout } from '../scripts/env';
+
+  /** Long edge of the canvas backing store, in device pixels. */
+  const RESOLUTION = 300;
+  const SOURCE_COUNT = 6;
+
+  type RGB = [number, number, number];
+
+  interface Source {
+    /** Current position, normalised 0..1 across the canvas. */
+    x: number;
+    y: number;
+    /**
+     * Where this source sits *relative to the pointer* — a direction and a
+     * distance. Sources hold station around the pointer instead of piling
+     * onto it, which is what keeps the palette legible as separate colours
+     * instead of averaging to one wash.
+     */
+    angle: number;
+    distance: number;
+    /** How fast that station drifts around the pointer. */
+    orbit: number;
+    /** How hard it chases its station. Spread wide to string out a tail. */
+    pull: number;
+    /** Radius as a fraction of the canvas long edge. */
+    radius: number;
+    /** Which palette slot this source draws from. */
+    slot: number;
+    /** Eased colour, so a chapter retint flows in rather than snapping. */
+    rgb: RGB;
+  }
+
+  function initAura() {
+    const canvas = document.getElementById('aura') as HTMLCanvasElement | null;
+    if (!canvas || canvas.dataset.wired === 'true') return;
+    canvas.dataset.wired = 'true';
+
+    const ctx = canvas.getContext('2d', { alpha: false });
+    if (!ctx) return;
+
+    // ---- palette ----------------------------------------------------------
+    // Custom properties can hold `var(--sprout)` rather than a literal colour,
+    // so resolve them through a probe element: whatever the chain, computed
+    // `color` always comes back as rgb().
+    const probe = document.createElement('span');
+    probe.style.cssText = 'position:absolute;width:0;height:0;visibility:hidden';
+    document.body.appendChild(probe);
+
+    const readColor = (value: string): RGB => {
+      probe.style.color = '';
+      probe.style.color = value;
+      const m = getComputedStyle(probe).color.match(/\d+(\.\d+)?/g);
+      if (!m) return [255, 248, 239];
+      return [Number(m[0]), Number(m[1]), Number(m[2])];
+    };
+
+    let palette: RGB[] = [];
+    let background: RGB = [255, 248, 239];
+
+    const readPalette = () => {
+      palette = ['--aura-1', '--aura-2', '--aura-3'].map((v) => readColor(`var(${v})`));
+      background = readColor('var(--bg)');
+    };
+    readPalette();
+
+    // ---- sources ----------------------------------------------------------
+    let w = RESOLUTION;
+    let h = RESOLUTION;
+
+    const sources: Source[] = Array.from({ length: SOURCE_COUNT }, (_, i) => ({
+      x: 0.5,
+      y: 0.5,
+      // Spread around a full turn, but not evenly — an even ring reads as a
+      // rosette. The golden-angle offset keeps it irregular.
+      angle: i * 2.399,
+      distance: 0.26 + (i % 3) * 0.13,
+      // Alternating direction, so the field folds through itself rather than
+      // rotating as one rigid wheel.
+      orbit: (i % 2 === 0 ? 1 : -1) * (0.00009 + i * 0.000035),
+      // 0.075 down to ~0.012: the leader tracks the pointer, the tail lags
+      // most of a second behind it. This spread is what looks liquid.
+      pull: 0.075 / (1 + i * 0.75),
+      // Kept tight on purpose. Sources wide enough to cover the field all
+      // overlap everywhere, and six overlapping pastels average to one pale
+      // wash — the colours have to hold their own territory to stay legible.
+      radius: 0.2 + (i % 3) * 0.09,
+      slot: i % 3,
+      rgb: [255, 248, 239],
+    }));
+
+    // Seed the eased colours so the first frame isn't a fade-in from cream.
+    sources.forEach((s) => (s.rgb = [...palette[s.slot]] as RGB));
+
+    const resize = () => {
+      const vw = window.innerWidth || 1;
+      const vh = window.innerHeight || 1;
+      const scale = RESOLUTION / Math.max(vw, vh);
+      w = Math.max(2, Math.round(vw * scale));
+      h = Math.max(2, Math.round(vh * scale));
+      canvas.width = w;
+      canvas.height = h;
+    };
+
+    // ---- pointer ----------------------------------------------------------
+    const pointer = { x: 0.5, y: 0.42 };
+    let idle = true;
+    let idleT = 0;
+
+    window.addEventListener(
+      'pointermove',
+      (e) => {
+        idle = false;
+        pointer.x = e.clientX / (window.innerWidth || 1);
+        pointer.y = e.clientY / (window.innerHeight || 1);
+      },
+      { passive: true },
+    );
+    document.addEventListener('pointerleave', () => (idle = true));
+
+    // ---- drawing ----------------------------------------------------------
+    let t = 0;
+
+    const draw = () => {
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.fillStyle = `rgb(${background[0]},${background[1]},${background[2]})`;
+      ctx.fillRect(0, 0, w, h);
+
+      const long = Math.max(w, h);
+
+      // A wide, faint bed under everything. Tight sources alone leave bare
+      // cream in the corners; this keeps the whole field tinted without
+      // muddying the colour zones on top of it.
+      for (const s of sources) {
+        const bed = ctx.createRadialGradient(
+          s.x * w, s.y * h, 0,
+          s.x * w, s.y * h, long * 0.85,
+        );
+        const [br, bg_, bb] = s.rgb;
+        bed.addColorStop(0, `rgba(${br},${bg_},${bb},0.16)`);
+        bed.addColorStop(1, `rgba(${br},${bg_},${bb},0)`);
+        ctx.fillStyle = bed;
+        ctx.fillRect(0, 0, w, h);
+      }
+
+      for (const s of sources) {
+        const cx = s.x * w;
+        const cy = s.y * h;
+        const r = s.radius * long;
+
+        const [cr, cg, cb] = s.rgb;
+        const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
+        // A long, shallow ramp. Anything steeper starts to read as an edge
+        // again once it's been stretched across the viewport.
+        g.addColorStop(0, `rgba(${cr},${cg},${cb},0.9)`);
+        g.addColorStop(0.3, `rgba(${cr},${cg},${cb},0.6)`);
+        g.addColorStop(0.6, `rgba(${cr},${cg},${cb},0.24)`);
+        g.addColorStop(0.85, `rgba(${cr},${cg},${cb},0.06)`);
+        g.addColorStop(1, `rgba(${cr},${cg},${cb},0)`);
+
+        ctx.fillStyle = g;
+        ctx.fillRect(0, 0, w, h);
+      }
+    };
+
+    const step = (dt: number) => {
+      t += dt;
+
+      if (idle) {
+        // Nobody's driving — wander on a lissajous so the field still moves.
+        idleT += dt * 0.00022;
+        pointer.x = 0.5 + Math.cos(idleT) * 0.26;
+        pointer.y = 0.45 + Math.sin(idleT * 1.3) * 0.22;
+      }
+
+      const k = Math.min(dt / 16.67, 3);
+      // Canvas is wider than tall, so an offset in x covers less of the field
+      // than the same offset in y. Correcting keeps the orbits circular.
+      const aspect = w / h;
+
+      for (const s of sources) {
+        s.angle += s.orbit * dt;
+
+        const targetX = pointer.x + Math.cos(s.angle) * s.distance;
+        const targetY = pointer.y + (Math.sin(s.angle) * s.distance) * aspect;
+
+        s.x += (targetX - s.x) * s.pull * k;
+        s.y += (targetY - s.y) * s.pull * k;
+
+        // Ease toward the live palette so a chapter retint flows in.
+        const target = palette[s.slot];
+        for (let c = 0; c < 3; c++) {
+          s.rgb[c] += (target[c] - s.rgb[c]) * 0.04 * k;
+        }
+      }
+
+      draw();
+    };
+
+    // ---- tiers ------------------------------------------------------------
+    let stop: (() => void) | null = null;
+    let lastTier: string | null = null;
+
+    const apply = () => {
+      const tier = motionTier();
+      if (tier === lastTier) return;
+      lastTier = tier;
+
+      stop?.();
+      stop = null;
+      canvas.dataset.tier = tier;
+      resize();
+
+      if (tier === 'static') {
+        // One frame, arranged rather than animated.
+        idle = true;
+        pointer.x = 0.5;
+        pointer.y = 0.4;
+        sources.forEach((s) => {
+          s.x = pointer.x + Math.cos(s.angle) * s.distance;
+          s.y = pointer.y + Math.sin(s.angle) * s.distance * (w / h);
+          s.rgb = [...palette[s.slot]] as RGB;
+        });
+        draw();
+        return;
+      }
+
+      if (tier === 'lite') {
+        // Half framerate and pointer-independent. The field still flows, it
+        // just isn't asked to track anything.
+        idle = true;
+        let accumulator = 0;
+        stop = rafLoop((dt) => {
+          accumulator += dt;
+          if (accumulator < 33) return;
+          step(accumulator);
+          accumulator = 0;
+        });
+        return;
+      }
+
+      stop = rafLoop(step);
+    };
+
+    // ---- retint -----------------------------------------------------------
+    // Chapter accents live in CSS, so watch the attributes that change them
+    // rather than requiring every caller to notify us.
+    const observer = new MutationObserver(() => readPalette());
+    observer.observe(document.body, {
+      attributes: true,
+      attributeFilter: ['style', 'data-chapter', 'class'],
+    });
+
+    window.addEventListener('resize', () => {
+      resize();
+      if (lastTier === 'static') draw();
+    });
+
+    afterFirstLayout(() => {
+      readPalette();
+      sources.forEach((s) => (s.rgb = [...palette[s.slot]] as RGB));
+      apply();
+      onCapabilityChange(apply);
+    });
+  }
+
+  initAura();
+</script>

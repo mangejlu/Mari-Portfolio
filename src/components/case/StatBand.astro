@@ -1,0 +1,168 @@
+---
+interface Stat {
+  value: string;
+  label: string;
+  note?: string;
+  kind: 'measured' | 'target' | 'scale' | 'benchmark';
+  source?: string;
+  sourceUrl?: string;
+}
+interface Props { stats: Stat[] }
+const { stats } = Astro.props;
+
+/**
+ * Numbers, with how they were obtained attached to each one.
+ *
+ * A portfolio stat with no provenance is a liability — the first recruiter who
+ * asks "how did you measure that?" finds out it was a target, or somebody
+ * else's benchmark. Labelling the kind up front turns that from a gotcha into
+ * evidence of rigour.
+ */
+const KIND_LABEL: Record<Stat['kind'], string> = {
+  measured: 'measured',
+  target: 'target',
+  scale: 'scope',
+  benchmark: 'industry benchmark',
+};
+---
+
+<ul class="stats" aria-label="Key numbers">
+  {stats.map((s) => (
+    <li class="stat" data-kind={s.kind}>
+      <span class="stat__value" data-value={s.value}>{s.value}</span>
+      <span class="stat__label">{s.label}</span>
+      <span class="stat__kind">{KIND_LABEL[s.kind]}</span>
+      {s.note && <span class="stat__note">{s.note}</span>}
+      {s.source && (
+        <span class="stat__source">
+          {s.sourceUrl
+            ? <a href={s.sourceUrl} target="_blank" rel="noopener noreferrer" data-cursor="source">{s.source}</a>
+            : s.source}
+        </span>
+      )}
+    </li>
+  ))}
+</ul>
+
+<style>
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .stat {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    background: var(--card);
+    padding: 22px 20px;
+  }
+
+  .stat__value {
+    font-family: var(--font-display);
+    font-size: clamp(30px, 4.4vw, 40px);
+    line-height: 1;
+    color: var(--accent);
+    font-variant-numeric: tabular-nums;
+    /* The accent runs light on cream; darken it enough to hold contrast
+       without losing the project's identity colour. */
+    filter: saturate(1.15) brightness(0.88);
+  }
+
+  .stat__label {
+    font-size: 13px;
+    line-height: 1.4;
+    margin-top: 4px;
+  }
+
+  .stat__kind {
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-top: 2px;
+  }
+  /* A target is not a result. Say so loudly enough to be unmissable. */
+  .stat[data-kind='target'] .stat__kind,
+  .stat[data-kind='benchmark'] .stat__kind {
+    color: var(--ink-soft);
+    font-weight: 500;
+  }
+
+  .stat__note,
+  .stat__source {
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--ink-soft);
+    margin-top: 6px;
+  }
+  .stat__source { font-size: 11px; }
+  .stat__source a { text-decoration: underline; text-underline-offset: 2px; }
+</style>
+
+<script>
+  import { prefersReducedMotion } from '../../scripts/env';
+
+  /**
+   * Count numbers up when they scroll in. Only touches the digits — prefixes
+   * and suffixes (↓, %, yrs, x, commas) are preserved exactly as authored, so
+   * "↓50%" and "4,149" both animate without being mangled.
+   */
+  function initStats() {
+    if (prefersReducedMotion()) return;
+    const els = document.querySelectorAll<HTMLElement>('.stat__value:not([data-counted])');
+    if (!els.length) return;
+
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue;
+          const el = entry.target as HTMLElement;
+          io.unobserve(el);
+          el.dataset.counted = 'true';
+
+          const raw = el.dataset.value ?? '';
+          const match = raw.match(/^(\D*)([\d,.]+)(.*)$/s);
+          if (!match) continue;
+
+          const [, prefix, digits, suffix] = match;
+          const target = Number(digits.replace(/,/g, ''));
+          if (!Number.isFinite(target)) continue;
+
+          const decimals = digits.includes('.') ? digits.split('.')[1].length : 0;
+          const grouped = digits.includes(',');
+          const start = performance.now();
+          const duration = 900;
+
+          const frame = (now: number) => {
+            const p = Math.min((now - start) / duration, 1);
+            // easeOutCubic — fast, then settles.
+            const eased = 1 - Math.pow(1 - p, 3);
+            const n = target * eased;
+            const text = grouped
+              ? n.toLocaleString('en-US', { maximumFractionDigits: decimals, minimumFractionDigits: decimals })
+              : n.toFixed(decimals);
+            el.textContent = `${prefix}${text}${suffix}`;
+            if (p < 1) requestAnimationFrame(frame);
+            else el.textContent = raw;
+          };
+          requestAnimationFrame(frame);
+        }
+      },
+      { threshold: 0.4 },
+    );
+
+    els.forEach((el) => io.observe(el));
+  }
+
+  initStats();
+  document.addEventListener('astro:page-load', initStats);
+</script>

@@ -1,0 +1,130 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { site } from '../data/site';
+
+/**
+ * A lost tile from the mural.
+ *
+ * A 404 is the one page nobody designs and everybody eventually sees. Making
+ * it part of the same world costs nothing and turns a dead end into one more
+ * small piece of the site's personality.
+ */
+---
+
+<BaseLayout
+  title="lost colour"
+  description="This page went somewhere that doesn’t exist."
+  aura={['#F5B48C', '#D6BEF5', '#AFD9F5']}
+>
+  <section class="lost">
+    <div class="shell on-aura">
+      <div class="lost__tile" aria-hidden="true">
+        <span class="lost__code">404</span>
+      </div>
+
+      <h1 class="lost__title">This colour went somewhere that doesn’t exist.</h1>
+      <p class="lost__note">
+        The page you were after isn’t here. It happens. Everything that does
+        exist is one click away.
+      </p>
+
+      <ul class="lost__links">
+        <li><a href="/" data-cursor="home" data-wash="var(--sprout)">back to the start</a></li>
+        <li><a href="/work/" data-chapter="work" data-cursor="view">chapter 01, the work</a></li>
+        <li><a href="/about/" data-chapter="about" data-cursor="hi">chapter 02, about me</a></li>
+        <li><a href="/mural/" data-chapter="mural" data-cursor="sign">chapter 03, the mural</a></li>
+      </ul>
+
+      <p class="lost__foot">
+        Or tell me what you were looking for:{' '}
+        <a href={`mailto:${site.email}`} data-cursor="write to me">{site.email}</a>
+      </p>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .lost {
+    position: relative;
+    z-index: 1;
+    min-height: 100svh;
+    display: flex;
+    align-items: center;
+    padding: 100px 0;
+  }
+
+  /* The tile itself: one of the mural's squares, come loose. */
+  .lost__tile {
+    width: 88px;
+    height: 88px;
+    border-radius: var(--radius);
+    background: color-mix(in oklab, var(--peach) 40%, var(--card));
+    border: 1px solid color-mix(in oklab, var(--peach) 60%, var(--border));
+    display: grid;
+    place-items: center;
+    margin-bottom: 26px;
+    transform: rotate(-4deg);
+    animation: tile-drift 7s ease-in-out infinite alternate;
+  }
+  .lost__code {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: 26px;
+    color: var(--ink);
+    opacity: 0.55;
+  }
+  @keyframes tile-drift {
+    from { transform: rotate(-4deg) translateY(0); }
+    to   { transform: rotate(3deg) translateY(-8px); }
+  }
+
+  .lost__title {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: clamp(28px, 5vw, 46px);
+    line-height: 1.06;
+    max-width: 18ch;
+    text-wrap: balance;
+  }
+  .lost__note {
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--ink-soft);
+    max-width: 44ch;
+    margin-top: 16px;
+  }
+
+  .lost__links {
+    list-style: none;
+    margin: 28px 0 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .lost__links a {
+    display: inline-block;
+    font-size: 13px;
+    padding: 10px 17px;
+    border-radius: 22px;
+    border: 1px solid var(--border);
+    background: var(--card);
+    text-decoration: none;
+    transition: transform var(--dur) var(--ease), border-color var(--dur) var(--ease);
+  }
+  .lost__links a:hover {
+    transform: translateY(-2px);
+    border-color: color-mix(in oklab, var(--accent) 55%, var(--border));
+  }
+
+  .lost__foot {
+    margin-top: 30px;
+    font-size: 13.5px;
+    color: var(--ink-soft);
+  }
+  .lost__foot a { text-decoration: underline; text-underline-offset: 3px; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .lost__tile { animation: none; }
+  }
+</style>

@@ -1,0 +1,125 @@
+---
+import type { CollectionEntry } from 'astro:content';
+interface Props { entry: CollectionEntry<'work'>; index: number }
+const { entry, index } = Astro.props;
+const d = entry.data;
+
+/**
+ * A full-width row rather than a grid tile.
+ *
+ * Three case studies in a card grid wrap 2+1 and read as a leftover. As rows
+ * they get the width to actually say something, the hierarchy is unambiguous
+ * (one, then two, then three), and the layout still holds at eight.
+ *
+ * Hovering a row floods the page aura with that project's colour — the same
+ * gesture the hero uses for chapters, so colour means one consistent thing
+ * across the whole site: "this is what you're pointing at".
+ */
+---
+
+<a
+  class="row"
+  href={`/work/${entry.id}/`}
+  data-cursor="open it"
+  data-wash={d.accent}
+  data-aura={d.aura.join('|')}
+  style={`--accent:${d.accent}`}
+>
+  <span class="row__num">{String(index + 1).padStart(2, '0')}</span>
+
+  <span class="row__head">
+    <h2 class="row__title">{d.title}</h2>
+    <span class="row__tagline">{d.tagline}</span>
+  </span>
+
+  <span class="row__body">
+    <span class="row__summary">{d.summary}</span>
+    <span class="row__tags">
+      {d.tags.map((t) => <span class="row__tag">{t}</span>)}
+      <span class="row__year">{d.meta.year}</span>
+    </span>
+  </span>
+
+  <span class="row__cta" aria-hidden="true">→</span>
+</a>
+
+<style>
+  .row {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) minmax(0, 1.05fr) auto;
+    gap: 26px;
+    align-items: start;
+    padding: 30px 26px;
+    text-decoration: none;
+    border: 1px solid var(--border);
+    border-left: 3px solid transparent;
+    border-radius: var(--radius);
+    background: var(--card);
+    transition:
+      border-left-color var(--dur) var(--ease),
+      transform var(--dur) var(--ease),
+      box-shadow var(--dur) var(--ease);
+  }
+  .row:hover,
+  .row:focus-visible {
+    border-left-color: var(--accent);
+    transform: translateX(4px);
+    box-shadow: 0 16px 32px -22px color-mix(in oklab, var(--accent) 90%, black);
+  }
+
+  .row__num {
+    font-family: var(--font-display);
+    font-size: 13px;
+    color: var(--accent);
+    filter: brightness(0.82);
+    font-variant-numeric: tabular-nums;
+    padding-top: 6px;
+  }
+
+  .row__head { display: flex; flex-direction: column; gap: 8px; }
+  .row__title {
+    margin: 0;
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: clamp(28px, 3.4vw, 36px);
+    line-height: 0.98;
+  }
+  .row__tagline {
+    font-size: 14.5px;
+    line-height: 1.35;
+    color: var(--ink);
+    text-wrap: balance;
+  }
+
+  .row__body { display: flex; flex-direction: column; gap: 14px; padding-top: 4px; }
+  .row__summary { font-size: 13.5px; line-height: 1.6; color: var(--ink-soft); }
+
+  .row__tags { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .row__tag {
+    font-size: 10.5px;
+    color: var(--ink-soft);
+    background: color-mix(in oklab, var(--accent) 13%, var(--card));
+    border: 1px solid color-mix(in oklab, var(--accent) 30%, var(--border));
+    padding: 4px 9px;
+    border-radius: 12px;
+  }
+  .row__year { font-size: 10.5px; color: var(--ink-faint); margin-left: 2px; font-variant-numeric: tabular-nums; }
+
+  .row__cta {
+    align-self: center;
+    font-size: 18px;
+    color: var(--ink-faint);
+    transition: transform var(--dur) var(--ease), color var(--dur) var(--ease);
+  }
+  .row:hover .row__cta { color: var(--accent); transform: translateX(4px); filter: brightness(0.85); }
+
+  @media (max-width: 780px) {
+    .row {
+      grid-template-columns: auto minmax(0, 1fr);
+      gap: 8px 18px;
+      padding: 24px 20px;
+    }
+    .row__body { grid-column: 2; }
+    .row__cta { display: none; }
+  }
+</style>

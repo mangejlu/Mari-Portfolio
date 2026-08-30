@@ -1,0 +1,221 @@
+@import './tokens.css';
+
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+/* A page should never scroll sideways. `clip` rather than `hidden` because
+   `hidden` would turn this into a scroll container and break every
+   position: sticky on the site. */
+html,
+body {
+  overflow-x: clip;
+}
+
+/* Any class that sets `display` outranks the browser's own
+   `[hidden] { display: none }`, so an element toggled with the hidden
+   attribute keeps rendering. This bit us twice (persona panels, then the
+   mural composer); enforcing it once here means it can't happen again. */
+[hidden] { display: none !important; }
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  color: var(--ink);
+  background: var(--bg);
+  line-height: 1.55;
+  /* the custom cursor replaces the native one, but only where a real
+     pointer exists — see CustomCursor.astro */
+}
+
+h1, h2, h3 { font-family: var(--font-display); font-weight: 500; margin: 0; }
+p { margin: 0; }
+a { color: inherit; }
+img, svg, canvas { max-width: 100%; }
+
+button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+/* Focus: never remove it. The custom cursor hides the mouse, so keyboard
+   users are the ones who most need this to be loud. */
+:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+/* Hidden by clipping, not by parking it at left: -9999px. The old trick
+   extends the document's scrollable width, which was adding up to 92px of
+   horizontal scroll on every page. */
+.skip-link {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 100;
+  background: var(--ink);
+  color: var(--bg);
+  padding: 10px 16px;
+  border-radius: 0 0 var(--radius-sm) 0;
+  font-size: 13px;
+  text-decoration: none;
+  transform: translateY(-120%);
+  transition: transform var(--dur) var(--ease);
+}
+.skip-link:focus { transform: none; }
+
+.visually-hidden {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---------- layout primitives ---------- */
+.shell {
+  max-width: var(--measure);
+  margin: 0 auto;
+  padding-inline: var(--gutter);
+}
+
+.chapter {
+  position: relative;
+  z-index: 1;
+  max-width: var(--measure);
+  margin: 0 auto;
+  padding: 90px var(--gutter);
+}
+
+.chapter-title {
+  font-style: italic;
+  font-size: clamp(22px, 3.4vw, 26px);
+}
+.chapter-num {
+  color: var(--accent);
+  transition: color var(--dur-slow) var(--ease);
+}
+
+.section-sub {
+  color: var(--ink-soft);
+  font-size: 15px;
+  margin: 8px 0 26px;
+}
+
+/* The content panel sits on an opaque background so the aura only shows
+   through the hero. That keeps the moving layer away from body text, where it
+   would fight for contrast. */
+.content-panel {
+  position: relative;
+  z-index: 1;
+  background: var(--bg);
+}
+
+/* The aura is fixed to the viewport, so wherever the panel stops, the aura
+   reappears and puts a hard band of colour across the bottom of a short page.
+   The panel therefore grows to fill whatever height is left.
+
+   Doing this with layout rather than an oversized painted pseudo-element
+   matters: the first attempt drew a tall block below the panel, which extended
+   the document's scrollable area and left ~900px of empty cream to scroll
+   through on every page. */
+body {
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+}
+main {
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
+}
+.content-panel {
+  flex: 1 0 auto;
+}
+
+/* ---------- legibility over the aura ----------
+   The aura moves, so at some point every colour passes behind the headline
+   and contrast drops out from under it. Dimming the aura would fix it and
+   lose the thing that makes the page feel alive, so instead each text block
+   over the aura carries its own soft pool of background.
+
+   It's a radial with no hard edge, sized larger than the text, so it never
+   reads as a panel or a box. The text keeps sitting in colour; the colour
+   just stops competing with it. */
+.on-aura {
+  position: relative;
+  isolation: isolate;
+}
+.on-aura::before {
+  content: '';
+  position: absolute;
+  inset: -18% -10%;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(
+    58% 56% at 50% 50%,
+    color-mix(in oklab, var(--bg) 94%, transparent) 0%,
+    color-mix(in oklab, var(--bg) 80%, transparent) 40%,
+    color-mix(in oklab, var(--bg) 42%, transparent) 68%,
+    transparent 100%
+  );
+}
+/* Left-aligned chapter headers want the pool weighted to the left, or it
+   fades out before the end of a long line. */
+.on-aura--start::before {
+  inset: -30% -12% -30% -8%;
+  background: radial-gradient(
+    68% 58% at 34% 50%,
+    color-mix(in oklab, var(--bg) 94%, transparent) 0%,
+    color-mix(in oklab, var(--bg) 78%, transparent) 44%,
+    color-mix(in oklab, var(--bg) 38%, transparent) 72%,
+    transparent 100%
+  );
+}
+
+.chip {
+  font-size: 11px;
+  padding: 5px 12px;
+  border-radius: 14px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--ink-soft);
+}
+
+.dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--accent);
+  flex: none;
+  transition: background var(--dur-slow) var(--ease);
+}
+
+/* ---------- scroll reveal ---------- */
+.reveal {
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity var(--dur-slow) var(--ease), transform var(--dur-slow) var(--ease);
+}
+.reveal.in-view { opacity: 1; transform: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal { opacity: 1; transform: none; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@media (max-width: 640px) {
+  :root { --gutter: 20px; }
+  .chapter { padding: 64px var(--gutter); }
+}

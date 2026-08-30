@@ -1,0 +1,170 @@
+---
+import { site, chapters, type ChapterId } from '../data/site';
+
+interface Props {
+  /** Which chapter is currently open — drives the accent dot and aria-current. */
+  current?: ChapterId | 'home';
+}
+const { current = 'home' } = Astro.props;
+---
+
+<nav class="nav" aria-label="Chapters">
+  <a class="nav__logo" href="/" data-cursor="home" data-wash="linear-gradient(120deg, var(--sprout), var(--blush), var(--peach))" id="logoLink">
+    <span class="nav__mark">{site.logo}</span>
+    <span class="dot" aria-hidden="true"></span>
+  </a>
+
+  <ul class="nav__links">
+    {chapters.map((c) => (
+      <li>
+        <a
+          href={c.href}
+          data-cursor={c.cursor}
+          data-chapter={c.id}
+          data-wash={c.accent}
+          aria-current={current === c.id ? 'page' : undefined}
+        >
+          <span class="nav__num">{c.num}</span> {c.label}
+        </a>
+      </li>
+    ))}
+  </ul>
+</nav>
+
+<style>
+  .nav {
+    position: fixed;
+    inset: 0 0 auto 0;
+    z-index: 30;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 20px var(--gutter);
+    font-size: 13px;
+    transition:
+      opacity var(--dur) var(--ease),
+      transform var(--dur) var(--ease),
+      background var(--dur) var(--ease),
+      border-color var(--dur) var(--ease);
+  }
+
+  /* Without this the page slides under floating text and the two collide.
+     The backdrop lives on a pseudo-element with a soft bottom edge: a flat
+     bar drew a hard horizontal seam across the aura, which read as a bug. */
+  .nav::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    opacity: 0;
+    background: linear-gradient(
+      to bottom,
+      var(--bg) 0%,
+      color-mix(in oklab, var(--bg) 92%, transparent) 62%,
+      color-mix(in oklab, var(--bg) 0%, transparent) 100%
+    );
+    transition: opacity var(--dur) var(--ease);
+    pointer-events: none;
+  }
+  :global(body.scrolled) .nav::before { opacity: 1; }
+
+  /* A case study's sticky rail carries its own home link and section index,
+     so two bars at the top would just compete. The nav steps aside. */
+  :global(body.rail-up) .nav {
+    opacity: 0;
+    transform: translateY(-8px);
+    pointer-events: none;
+  }
+
+  .nav__logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    user-select: none;
+  }
+  .nav__mark {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: 17px;
+  }
+
+  .nav__links {
+    display: flex;
+    gap: 18px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .nav__links a {
+    text-decoration: none;
+    opacity: 0.75;
+    transition: opacity var(--dur) var(--ease);
+  }
+  .nav__links a:hover,
+  .nav__links a:focus-visible { opacity: 1; }
+  .nav__links a[aria-current='page'] { opacity: 1; }
+  .nav__links a[aria-current='page'] .nav__num { color: var(--accent); }
+
+  .nav__num {
+    color: var(--ink-faint);
+    transition: color var(--dur-slow) var(--ease);
+    font-variant-numeric: tabular-nums;
+  }
+
+  @media (max-width: 640px) {
+    .nav { padding: 16px var(--gutter); }
+    .nav__links { gap: 13px; }
+  }
+</style>
+
+<script>
+  /** Five clicks on the logo, same as the prototype. */
+  function initEasterEgg() {
+    const logo = document.getElementById('logoLink');
+    if (!logo || logo.dataset.wired === 'true') return;
+    logo.dataset.wired = 'true';
+
+    let count = 0;
+    let timer: number | undefined;
+
+    logo.addEventListener('click', (e) => {
+      count += 1;
+      clearTimeout(timer);
+      timer = window.setTimeout(() => (count = 0), 1500);
+
+      if (count === 5) {
+        e.preventDefault(); // the fifth click is the egg, not a navigation
+        count = 0;
+        (window as any).__sparkle?.(e.clientX, e.clientY, 14);
+        (window as any).__toast?.('ok, you found mari’s secret. have a good one ✦');
+      }
+    });
+  }
+
+  initEasterEgg();
+  document.addEventListener('astro:after-swap', initEasterEgg);
+
+  /**
+   * Flag the scrolled state once, on a passive listener, rather than reading
+   * layout on every scroll event.
+   */
+  function initScrollState() {
+    if ((window as any).__scrollStateWired) return;
+    (window as any).__scrollStateWired = true;
+
+    let ticking = false;
+    const update = () => {
+      document.body.classList.toggle('scrolled', window.scrollY > 24);
+      ticking = false;
+    };
+    window.addEventListener('scroll', () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(update);
+    }, { passive: true });
+    update();
+  }
+  initScrollState();
+</script>

@@ -1,0 +1,21 @@
+---
+/**
+ * Wraps children in a scroll-reveal. One shared IntersectionObserver for the
+ * whole page rather than one per element.
+ *
+ * `...rest` is spread onto the element on purpose: Astro passes a parent's
+ * style-scope marker down as a prop, and a component with a dynamic root tag
+ * can't have it attached automatically. Without the spread, every scoped rule
+ * a page writes against a Reveal wrapper (`.about-foot`, `.work-foot`, …)
+ * silently matches nothing.
+ */
+interface Props { as?: string; class?: string; delay?: number; [key: string]: unknown }
+const { as: Tag = 'div', class: className = '', delay = 0, ...rest } = Astro.props;
+---
+<Tag
+  class:list={['reveal', className]}
+  style={delay ? `transition-delay:${delay}ms` : undefined}
+  {...rest}
+>
+  <slot />
+</Tag>

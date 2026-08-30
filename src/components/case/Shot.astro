@@ -1,0 +1,38 @@
+---
+import Picture from '../Picture.astro';
+import type { MediaName } from '../../data/media';
+
+interface Props { name: MediaName; alt: string; caption?: string; wide?: boolean }
+const { name, alt, caption, wide = false } = Astro.props;
+
+/**
+ * A product screenshot. Two widths in a srcset, lazy below the fold, with
+ * width/height set so the page never jumps while they load.
+ */
+---
+<figure class:list={['shot', wide && 'shot--wide']}>
+  <Picture
+    name={name}
+    alt={alt}
+    sizes={wide ? '(max-width: 920px) 100vw, 920px' : '(max-width: 640px) 100vw, 450px'}
+  />
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>
+
+<style>
+  .shot { margin: 0; }
+  .shot :global(img) {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    background: var(--card);
+  }
+  .shot figcaption {
+    margin-top: 9px;
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: var(--ink-soft);
+  }
+</style>

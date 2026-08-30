@@ -1,0 +1,182 @@
+---
+interface Shift { before: string; after: string; detail: string; where?: string }
+interface Props { shifts: Shift[]; beforeLabel?: string; afterLabel?: string }
+const { shifts, beforeLabel = 'before', afterLabel = 'after' } = Astro.props;
+const id = 'shift-' + Math.random().toString(36).slice(2, 8);
+
+/**
+ * The spine of every case study: what it was, what it became.
+ *
+ * One switch flips all of them at once. That's deliberate — reading the whole
+ * "before" state as a set, then watching it become the "after" state, lands the
+ * argument in a way a list of paired bullets never does. Each row can then be
+ * opened for the reasoning, so the section is scannable in five seconds and
+ * still holds the depth for someone who wants it.
+ */
+---
+
+<div class="shifts" id={id} data-state="before">
+  <div class="shifts__switch" role="group" aria-label="Compare before and after">
+    <button type="button" data-shift-to="before" data-cursor="rewind">{beforeLabel}</button>
+    <button type="button" data-shift-to="after" data-cursor="show me">{afterLabel}</button>
+    <span class="shifts__thumb" aria-hidden="true"></span>
+  </div>
+
+  <ul class="shifts__list">
+    {shifts.map((s, i) => (
+      <li class="shift">
+        <details class="shift__box" name={id}>
+          <summary data-cursor="why">
+            <span class="shift__num">{String(i + 1).padStart(2, '0')}</span>
+            <span class="shift__texts">
+              <span class="shift__before" data-on="true">{s.before}</span>
+              <span class="shift__after" data-on="false">{s.after}</span>
+            </span>
+            {s.where && <span class="shift__where">{s.where}</span>}
+          </summary>
+          <p class="shift__detail">{s.detail}</p>
+        </details>
+      </li>
+    ))}
+  </ul>
+</div>
+
+<style>
+  .shifts__switch {
+    position: relative;
+    display: inline-flex;
+    padding: 3px;
+    border: 1px solid var(--border);
+    border-radius: 22px;
+    background: var(--card);
+    margin-bottom: 22px;
+  }
+  .shifts__switch button {
+    position: relative;
+    z-index: 1;
+    border: none;
+    background: none;
+    font-size: 12.5px;
+    padding: 7px 18px;
+    border-radius: 20px;
+    color: var(--ink-soft);
+    transition: color var(--dur) var(--ease);
+  }
+  .shifts__switch button[aria-pressed='true'] { color: var(--bg); }
+
+  .shifts__thumb {
+    position: absolute;
+    top: 3px;
+    bottom: 3px;
+    border-radius: 20px;
+    background: var(--ink);
+    transition: transform var(--dur) var(--ease), width var(--dur) var(--ease);
+  }
+
+  .shifts__list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+
+  .shift__box {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--card);
+    overflow: hidden;
+  }
+  .shift__box summary {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    padding: 18px 20px;
+    list-style: none;
+    transition: background var(--dur) var(--ease);
+  }
+  .shift__box summary::-webkit-details-marker { display: none; }
+  .shift__box summary:hover { background: color-mix(in oklab, var(--accent) 7%, var(--card)); }
+
+  .shift__num {
+    font-size: 11px;
+    color: var(--accent);
+    font-variant-numeric: tabular-nums;
+    filter: brightness(0.85);
+    flex: none;
+  }
+
+  /* Both strings occupy the same grid cell, so the row never reflows when the
+     switch is flipped — only the text cross-fades. */
+  .shift__texts { display: grid; flex: 1; }
+  .shift__before,
+  .shift__after {
+    grid-area: 1 / 1;
+    font-size: 15.5px;
+    line-height: 1.35;
+    transition: opacity var(--dur) var(--ease);
+  }
+  .shift__before { color: var(--ink-soft); text-decoration: line-through; text-decoration-color: color-mix(in oklab, var(--danger) 55%, transparent); }
+  .shift__after { font-weight: 500; }
+
+  .shift__before[data-on='false'],
+  .shift__after[data-on='false'] { opacity: 0; }
+
+  .shift__where {
+    font-size: 10px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    flex: none;
+  }
+
+  .shift__detail {
+    padding: 0 20px 20px 45px;
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--ink-soft);
+    max-width: 62ch;
+  }
+
+  @media (max-width: 640px) {
+    .shift__where { display: none; }
+    .shift__detail { padding-left: 20px; }
+  }
+</style>
+
+<script>
+  function initShifts() {
+    for (const root of document.querySelectorAll<HTMLElement>('.shifts')) {
+      if (root.dataset.wired === 'true') continue;
+      root.dataset.wired = 'true';
+
+      const buttons = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-shift-to]'));
+      const thumb = root.querySelector<HTMLElement>('.shifts__thumb');
+
+      const select = (state: string) => {
+        root.dataset.state = state;
+
+        for (const row of root.querySelectorAll<HTMLElement>('.shift__before')) {
+          row.dataset.on = String(state === 'before');
+        }
+        for (const row of root.querySelectorAll<HTMLElement>('.shift__after')) {
+          row.dataset.on = String(state === 'after');
+        }
+
+        for (const b of buttons) {
+          const on = b.dataset.shiftTo === state;
+          b.setAttribute('aria-pressed', String(on));
+          if (on && thumb) {
+            thumb.style.width = `${b.offsetWidth}px`;
+            thumb.style.transform = `translateX(${b.offsetLeft - 3}px)`;
+          }
+        }
+      };
+
+      for (const b of buttons) {
+        b.addEventListener('click', () => select(b.dataset.shiftTo!));
+      }
+
+      select(root.dataset.state ?? 'before');
+      // Button widths depend on the font, so re-measure once it has loaded.
+      document.fonts?.ready.then(() => select(root.dataset.state ?? 'before'));
+    }
+  }
+
+  initShifts();
+  document.addEventListener('astro:page-load', initShifts);
+</script>

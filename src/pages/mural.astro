@@ -1,0 +1,70 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Reveal from '../components/Reveal.astro';
+import GuestBook from '../components/mural/GuestBook.astro';
+import { site } from '../data/site';
+---
+
+<BaseLayout
+  title="the mural"
+  chapter="mural"
+  aura={['#F5B48C', '#FFF2A8', '#F5AFC9']}
+>
+  <header class="mural-hero">
+    <div class="shell on-aura on-aura--start">
+      <h1 class="chapter-title"><span class="chapter-num">chapter 03</span> the mural</h1>
+      <p class="mural-hero__lead">
+        Every visitor leaves one colour and one line here. Pick yours, say
+        something, and it stays on the wall for whoever comes next.
+      </p>
+    </div>
+  </header>
+
+  <div class="content-panel">
+    <section class="chapter">
+      <Reveal><GuestBook /></Reveal>
+
+
+      <Reveal class="mural-foot">
+        <p>
+          That's the whole visit. Thanks for wandering through my colours today.
+        </p>
+        <p class="mural-foot__links">
+          <a href="/work/" data-chapter="work" data-cursor="again">back to the work</a>
+          <span aria-hidden="true">·</span>
+          <a href={`mailto:${site.email}`} data-cursor="write to me">say hi properly</a>
+        </p>
+      </Reveal>
+    </section>
+  </div>
+</BaseLayout>
+
+<style>
+  .mural-hero { position: relative; z-index: 1; padding: 120px 0 60px; }
+  .mural-hero::after {
+    content: '';
+    position: absolute; inset: auto 0 0 0; height: 110px;
+    background: linear-gradient(to bottom, transparent, var(--bg));
+    pointer-events: none;
+  }
+  .mural-hero__lead {
+    margin-top: 12px;
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--ink-soft);
+    max-width: 46ch;
+  }
+
+  .chapter { padding-top: 0; }
+
+
+  :global(.mural-foot) { margin-top: 52px; font-size: 14px; color: var(--ink-soft); }
+  :global(.mural-foot__links) { margin-top: 8px; display: flex; gap: 10px; flex-wrap: wrap; }
+  :global(.mural-foot__links) a { text-decoration: underline; text-underline-offset: 3px; }
+</style>
+
+<script>
+  import { initGuestBook } from '../scripts/guestbook';
+  initGuestBook();
+  document.addEventListener('astro:page-load', initGuestBook);
+</script>

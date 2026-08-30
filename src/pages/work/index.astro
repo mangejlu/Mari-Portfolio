@@ -1,0 +1,57 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import WorkCard from '../../components/WorkCard.astro';
+import Reveal from '../../components/Reveal.astro';
+
+const entries = (await getCollection('work')).sort((a, b) => a.data.order - b.data.order);
+---
+
+<BaseLayout title="the work" chapter="work">
+  <!-- The aura reads through this header, then the opaque panel below takes
+       over — same structure the case studies use, so text is never competing
+       with a moving background for contrast. -->
+  <header class="work-hero">
+    <div class="shell on-aura on-aura--start">
+      <h1 class="chapter-title"><span class="chapter-num">chapter 01</span> the work</h1>
+      <p class="section-sub">
+        Solutions I designed, start to finish.
+      </p>
+    </div>
+  </header>
+
+  <div class="content-panel">
+    <section class="chapter">
+    <div class="work-grid">
+      {entries.map((entry, i) => (
+        <Reveal delay={i * 70}>
+          <WorkCard entry={entry} index={i} />
+        </Reveal>
+      ))}
+    </div>
+
+    <Reveal class="work-foot">
+      <p>
+        Rather see the person behind them?
+        <a href="/about/" data-chapter="about" data-cursor="hi">chapter 02, get to know me →</a>
+      </p>
+    </Reveal>
+    </section>
+  </div>
+</BaseLayout>
+
+<style>
+  .work-hero { position: relative; z-index: 1; padding: 120px 0 60px; }
+  .work-hero::after {
+    content: '';
+    position: absolute; inset: auto 0 0 0; height: 110px;
+    background: linear-gradient(to bottom, transparent, var(--bg));
+    pointer-events: none;
+  }
+  .chapter { padding-top: 0; }
+  .work-grid { display: grid; gap: 14px; }
+  .work-grid > :global(.reveal) > :global(*) { width: 100%; }
+
+  :global(.work-foot) { margin-top: 46px; font-size: 14px; color: var(--ink-soft); }
+  :global(.work-foot) a { text-decoration: underline; text-underline-offset: 3px; }
+</style>

@@ -1,0 +1,198 @@
+---
+interface Section { id: string; label: string }
+interface Props {
+  title: string;
+  sections: Section[];
+  cta?: { label: string; href: string } | null;
+}
+const { title, sections, cta } = Astro.props;
+
+/**
+ * The sticky rail: where you are, where you can jump, and the prototype.
+ *
+ * The prototype used to sit at the very bottom, which meant someone with
+ * ninety seconds had to read a case study to reach the thing they came for.
+ * A "skip" button would fix the symptom and frame the writing as an obstacle,
+ * so instead the primary action just becomes permanent — visible from the
+ * moment you scroll, never something you have to remember is down there.
+ *
+ * The section list is the honest version of "skip": it lets a skimmer jump to
+ * whatever they actually want (outcome first is a completely reasonable way to
+ * read a case study) instead of only letting them bypass. Scroll-spy keeps the
+ * current section marked so the rail doubles as a progress indicator.
+ *
+ * It also takes over from the fixed site nav rather than sitting under it.
+ * Two bars stacked at the top of a long read is two things competing to tell
+ * you where you are, so the rail carries the wordmark home-link itself and the
+ * site nav fades out while it's up.
+ */
+---
+
+<div class="rail" id="caseRail" data-visible="false">
+  <div class="rail__inner">
+    <a class="rail__home" href="/" data-cursor="home">mari.</a>
+    <span class="rail__sep" aria-hidden="true">/</span>
+    <span class="rail__title">{title}</span>
+
+    <nav class="rail__nav" aria-label="Sections of this case study">
+      <ul>
+        {sections.map((s) => (
+          <li><a href={`#${s.id}`} data-rail-link={s.id}>{s.label}</a></li>
+        ))}
+      </ul>
+    </nav>
+
+    {cta ? (
+      <a
+        class="rail__cta"
+        href={cta.href}
+        target={cta.href.startsWith('http') ? '_blank' : undefined}
+        rel={cta.href.startsWith('http') ? 'noopener noreferrer' : undefined}
+        data-cursor="open it"
+      >{cta.label} ↗</a>
+    ) : null}
+  </div>
+</div>
+
+<style>
+  .rail {
+    position: sticky;
+    top: 0;
+    z-index: 28;
+    background: color-mix(in oklab, var(--bg) 88%, transparent);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+    /* Slides out of the way over the hero, where the nav already orients you. */
+    transform: translateY(-100%);
+    opacity: 0;
+    pointer-events: none;
+    transition: transform var(--dur) var(--ease), opacity var(--dur) var(--ease);
+  }
+  .rail[data-visible='true'] {
+    transform: none;
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .rail__inner {
+    max-width: var(--measure);
+    margin: 0 auto;
+    padding: 10px var(--gutter);
+    display: flex;
+    align-items: center;
+    gap: 18px;
+  }
+
+  .rail__home {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: 16px;
+    text-decoration: none;
+    flex: none;
+  }
+  .rail__sep { color: var(--ink-faint); flex: none; font-size: 13px; }
+  .rail__title {
+    font-size: 13px;
+    color: var(--ink-soft);
+    flex: none;
+  }
+
+  .rail__nav { flex: 1; min-width: 0; }
+  .rail__nav ul {
+    display: flex;
+    gap: 4px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .rail__nav ul::-webkit-scrollbar { display: none; }
+  .rail__nav a {
+    display: block;
+    white-space: nowrap;
+    font-size: 12px;
+    padding: 5px 10px;
+    border-radius: 14px;
+    text-decoration: none;
+    color: var(--ink-soft);
+    transition: color var(--dur) var(--ease), background var(--dur) var(--ease);
+  }
+  .rail__nav a:hover { color: var(--ink); }
+  .rail__nav a[aria-current='true'] {
+    color: var(--ink);
+    background: color-mix(in oklab, var(--accent) 24%, transparent);
+  }
+
+  .rail__cta {
+    flex: none;
+    font-size: 12.5px;
+    padding: 8px 15px;
+    border-radius: 20px;
+    text-decoration: none;
+    background: var(--ink);
+    color: var(--bg);
+    transition: transform var(--dur) var(--ease);
+  }
+  .rail__cta:hover { transform: translateY(-1px); }
+
+  @media (max-width: 780px) {
+    .rail__title, .rail__sep { display: none; }
+    .rail__inner { gap: 10px; padding: 8px var(--gutter); }
+    .rail__cta { padding: 7px 12px; font-size: 12px; }
+  }
+</style>
+
+<script>
+  function initRail() {
+    const rail = document.getElementById('caseRail');
+    if (!rail || rail.dataset.wired === 'true') return;
+    rail.dataset.wired = 'true';
+
+    // Show the rail once the hero has scrolled away.
+    const hero = document.querySelector('.case__hero');
+    if (hero) {
+      new IntersectionObserver(
+        ([entry]) => {
+          const up = !entry.isIntersecting;
+          rail.dataset.visible = String(up);
+          document.body.classList.toggle('rail-up', up);
+        },
+        { rootMargin: '-60px 0px 0px 0px' },
+      ).observe(hero);
+    }
+
+    // Scroll-spy. The band sits above centre so a section is marked current
+    // while you're reading its start, not once you've nearly left it.
+    const links = new Map<string, HTMLAnchorElement>();
+    for (const a of rail.querySelectorAll<HTMLAnchorElement>('[data-rail-link]')) {
+      links.set(a.dataset.railLink!, a);
+    }
+
+    const seen = new Set<string>();
+    const spy = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) seen.add(entry.target.id);
+          else seen.delete(entry.target.id);
+        }
+        // Mark the topmost visible section, so scrolling up feels right too.
+        let current: string | null = null;
+        for (const [id] of links) if (seen.has(id)) { current = id; break; }
+        for (const [id, a] of links) {
+          if (id === current) a.setAttribute('aria-current', 'true');
+          else a.removeAttribute('aria-current');
+        }
+      },
+      { rootMargin: '-15% 0px -55% 0px' },
+    );
+
+    for (const id of links.keys()) {
+      const section = document.getElementById(id);
+      if (section) spy.observe(section);
+    }
+  }
+
+  initRail();
+  document.addEventListener('astro:page-load', initRail);
+</script>

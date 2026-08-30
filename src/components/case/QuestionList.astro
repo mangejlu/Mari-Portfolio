@@ -1,0 +1,57 @@
+---
+interface Props { questions: string[]; heading?: string }
+const { questions, heading = 'Questions that were hard to answer' } = Astro.props;
+
+/**
+ * The problem, stated as the questions people couldn't answer.
+ *
+ * More persuasive than describing the problem abstractly: a reader recognises
+ * the feeling of not being able to answer a simple question about their own
+ * work, and arrives at the diagnosis themselves.
+ */
+---
+
+<div class="questions">
+  <p class="questions__heading">{heading}</p>
+  <ul>
+    {questions.map((q) => (
+      <li><span class="questions__mark" aria-hidden="true">?</span>{q}</li>
+    ))}
+  </ul>
+</div>
+
+<style>
+  .questions {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--card);
+    padding: 24px;
+  }
+  .questions__heading {
+    font-size: 11px;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-bottom: 16px;
+  }
+  .questions ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+  .questions li {
+    display: flex;
+    gap: 12px;
+    align-items: baseline;
+    font-size: 15px;
+    line-height: 1.45;
+  }
+  .questions__mark {
+    flex: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: color-mix(in oklab, var(--accent) 30%, var(--card));
+    color: var(--ink);
+    font-size: 11px;
+    display: grid;
+    place-items: center;
+    align-self: center;
+  }
+</style>

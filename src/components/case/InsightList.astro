@@ -1,0 +1,84 @@
+---
+interface Insight { title: string; body: string }
+interface Props { insights: Insight[] }
+const { insights } = Astro.props;
+const name = 'insight-' + Math.random().toString(36).slice(2, 8);
+
+/**
+ * Insights as headlines you can scan, with the reasoning one click away.
+ *
+ * The titles are written as complete claims, so reading only the titles is
+ * already a coherent argument. That's the "less text" trick — nothing is
+ * hidden that you needed, only elaborated.
+ */
+---
+
+<ol class="insights">
+  {insights.map((ins, i) => (
+    <li>
+      <details class="insight" name={name} open={i === 0}>
+        <summary data-cursor="expand">
+          <span class="insight__num">{i + 1}</span>
+          <span class="insight__title">{ins.title}</span>
+          <span class="insight__chev" aria-hidden="true"></span>
+        </summary>
+        <p class="insight__body">{ins.body}</p>
+      </details>
+    </li>
+  ))}
+</ol>
+
+<style>
+  .insights { list-style: none; margin: 0; padding: 0; counter-reset: none; border-top: 1px solid var(--border); }
+  .insights > li { border-bottom: 1px solid var(--border); }
+
+  .insight summary {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    padding: 18px 4px;
+    list-style: none;
+  }
+  .insight summary::-webkit-details-marker { display: none; }
+
+  .insight__num {
+    font-family: var(--font-display);
+    font-size: 22px;
+    line-height: 1;
+    color: var(--accent);
+    filter: brightness(0.85);
+    flex: none;
+    width: 22px;
+  }
+  .insight__title {
+    flex: 1;
+    font-size: clamp(16px, 2.2vw, 19px);
+    line-height: 1.35;
+    font-family: var(--font-display);
+    text-wrap: balance;
+  }
+
+  .insight__chev {
+    flex: none;
+    width: 10px;
+    height: 10px;
+    border-right: 1.5px solid var(--ink-faint);
+    border-bottom: 1.5px solid var(--ink-faint);
+    transform: rotate(45deg);
+    transition: transform var(--dur) var(--ease);
+    align-self: center;
+  }
+  .insight[open] .insight__chev { transform: rotate(-135deg); }
+
+  .insight__body {
+    padding: 0 30px 20px 38px;
+    font-size: 14.5px;
+    line-height: 1.65;
+    color: var(--ink-soft);
+    max-width: 66ch;
+  }
+
+  @media (max-width: 640px) {
+    .insight__body { padding-left: 38px; padding-right: 4px; }
+  }
+</style>

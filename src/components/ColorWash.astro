@@ -1,0 +1,97 @@
+---
+/**
+ * The coloured wipe between chapters. In the prototype this was fake — it
+ * covered a smooth-scroll. Here it covers a real route change, driven by
+ * Astro's ClientRouter lifecycle:
+ *
+ *   before-preparation → wash in (and hold while the next page loads)
+ *   after-swap         → wash out over the new page
+ *
+ * The colour comes from the link's own `data-wash`, falling back to the
+ * destination chapter's accent, so navigating to About always washes pink.
+ */
+---
+
+<div class="wash" id="wash" aria-hidden="true" transition:persist="wash"></div>
+
+<style>
+  .wash {
+    position: fixed;
+    inset: 0;
+    z-index: 42;
+    pointer-events: none;
+    opacity: 0;
+    background: var(--wash-color, var(--accent));
+    transition: opacity 0.28s var(--ease);
+  }
+  .wash[data-state='in'] { opacity: 0.9; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .wash { display: none; }
+  }
+</style>
+
+<script>
+  import { prefersReducedMotion } from '../scripts/env';
+
+  const CHAPTER_WASH: Record<string, string> = {
+    work: 'var(--sprout)',
+    about: 'var(--blush)',
+    mural: 'var(--peach)',
+  };
+  const RAINBOW = 'linear-gradient(120deg, var(--aura-1), var(--aura-2), var(--aura-3))';
+
+  function initWash() {
+    if (prefersReducedMotion()) return;
+
+    // Resolved per event rather than captured once: the element is persisted
+    // across navigations, but if that ever stops holding we want the next
+    // wash to find the live node instead of animating a detached one.
+    const el = () => document.getElementById('wash');
+    let pending: string | null = null;
+
+    // Remember what colour the clicked link wants, before navigation starts.
+    document.addEventListener(
+      'click',
+      (e) => {
+        const link = (e.target as Element | null)?.closest?.('a[href]') as HTMLAnchorElement | null;
+        if (!link) return;
+        pending = link.dataset.wash ?? CHAPTER_WASH[link.dataset.chapter ?? ''] ?? null;
+      },
+      { capture: true },
+    );
+
+    let liftTimer: number | undefined;
+    let safetyTimer: number | undefined;
+
+    const lift = () => {
+      clearTimeout(liftTimer);
+      clearTimeout(safetyTimer);
+      const wash = el();
+      if (wash) wash.dataset.state = 'out';
+      pending = null;
+    };
+
+    document.addEventListener('astro:before-preparation', () => {
+      const wash = el();
+      if (!wash) return;
+      wash.style.setProperty('--wash-color', pending ?? RAINBOW);
+      wash.dataset.state = 'in';
+
+      // A wash that fails to lift leaves an opaque sheet over the whole site,
+      // so it always gets an unconditional deadline. Timers keep running when
+      // frames don't (background tab, throttled renderer) — which is exactly
+      // the case a rAF-based lift would strand.
+      clearTimeout(safetyTimer);
+      safetyTimer = window.setTimeout(lift, 1200);
+    });
+
+    document.addEventListener('astro:after-swap', () => {
+      // Let the new page paint before lifting, so the swap is never visible.
+      clearTimeout(liftTimer);
+      liftTimer = window.setTimeout(lift, 60);
+    });
+  }
+
+  initWash();
+</script>

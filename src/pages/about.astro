@@ -1,0 +1,92 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Reveal from '../components/Reveal.astro';
+import Spread from '../components/about/Spread.astro';
+import { site } from '../data/site';
+import { bio } from '../data/about';
+---
+
+<BaseLayout
+  title="get to know me"
+  chapter="about"
+  aura={['#F5AFC9', '#D6BEF5', '#F5B48C']}
+>
+  <header class="about-hero">
+    <div class="shell on-aura on-aura--start">
+      <h1 class="chapter-title"><span class="chapter-num">chapter 02</span> get to know me</h1>
+      <div class="bio">
+        {bio.map((para, i) => (
+          <Reveal delay={i * 70}><p class="bio__p" set:html={para} /></Reveal>
+        ))}
+      </div>
+    </div>
+  </header>
+
+  <div class="content-panel">
+    <section class="chapter">
+      <Reveal>
+        <p class="section-sub">
+          the rest of it
+        </p>
+      </Reveal>
+
+      <Spread />
+
+      <Reveal>
+        <div class="contact">
+          <p class="contact__label">say hi</p>
+          <a class="contact__email" href={`mailto:${site.email}`} data-cursor="write to me">
+            {site.email}
+          </a>
+        </div>
+      </Reveal>
+
+      <Reveal class="about-foot">
+        <p>
+          Next up, <a href="/mural/" data-chapter="mural" data-cursor="sign">chapter 03, the mural</a>.
+          Leave a colour before you go.
+        </p>
+      </Reveal>
+    </section>
+  </div>
+</BaseLayout>
+
+<style>
+  .about-hero { position: relative; z-index: 1; padding: 120px 0 70px; }
+  .about-hero::after {
+    content: '';
+    position: absolute; inset: auto 0 0 0; height: 110px;
+    background: linear-gradient(to bottom, transparent, var(--bg));
+    pointer-events: none;
+  }
+
+  .bio { max-width: 56ch; display: grid; gap: 16px; margin-top: 22px; }
+  .bio__p { font-size: clamp(16px, 2.1vw, 18px); line-height: 1.6; }
+  .bio__p :global(em) { font-style: italic; }
+
+  .chapter { padding-top: 0; }
+
+  .contact { margin-top: 56px; }
+  .contact__label {
+    font-size: 11px;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-bottom: 10px;
+  }
+  .contact__email {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: clamp(22px, 4.4vw, 38px);
+    line-height: 1.1;
+    text-decoration: none;
+    border-bottom: 2px solid color-mix(in oklab, var(--accent) 60%, transparent);
+    padding-bottom: 3px;
+    transition: border-color var(--dur) var(--ease);
+    word-break: break-word;
+  }
+  .contact__email:hover { border-bottom-color: var(--accent); }
+
+  :global(.about-foot) { margin-top: 52px; font-size: 14px; color: var(--ink-soft); }
+  :global(.about-foot) a { text-decoration: underline; text-underline-offset: 3px; }
+</style>
