@@ -55,7 +55,7 @@ research:
     - title: Approvals live or die on status clarity.
       body: >-
         When you can’t see what state something is in, the gap fills with chase
-        emails and unnecesary meetings. In hawk, requests and approval are visible from the start.
+        emails and unnecessary meetings. In HAWK, requests and approvals are visible from the start.
     - title: AI is only useful once it has context.
       body: >-
         A general assistant is noise. Tied to one audit and its documents, it can
