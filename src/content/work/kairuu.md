@@ -198,16 +198,10 @@ outcome:
     - Connect what gets made to how students do with it.
 
 reflection: >-
-  The most useful thing I did was interview students, even though we were only
-  building for teachers. It changed what the product was: not a file organiser
-  with AI bolted on, but an attempt to shorten the distance between what a
-  teacher knows and what a student actually gets. That came from the two
-  interviews nobody asked me to do.
-
-  The other thing I would defend is how plain it looks. Restraint was the
-  design decision here, not a shortage of ideas. A teacher who is nervous
-  about software will not go hunting for a feature, so there is nothing to
-  hunt for.
+  The part I would defend is how plain it looks. Teachers are not short on
+  ideas. They are short on time, and on patience for software that makes them
+  feel slow. So Kairuu does four things and then gets out of the way, which was
+  harder to design than something impressive would have been.
 
 links:
   - label: Try the prototype
