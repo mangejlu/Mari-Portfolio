@@ -28,7 +28,7 @@ export const site = {
 export const chapters = [
   { id: 'work',  num: '01', label: 'work',  href: '/work/',  cursor: 'view', accent: 'var(--sprout)' },
   { id: 'about', num: '02', label: 'about', href: '/about/', cursor: 'hi',   accent: 'var(--blush)' },
-  { id: 'mural', num: '03', label: 'mural', href: '/mural/', cursor: 'sign', accent: 'var(--peach)' },
+  { id: 'mural', num: '03', label: 'mural', href: '/mural/', cursor: 'peek', accent: 'var(--peach)' },
 ] as const;
 
 export type ChapterId = (typeof chapters)[number]['id'];
