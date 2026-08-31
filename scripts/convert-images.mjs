@@ -18,11 +18,10 @@ const JOBS = [
   ['Case Study Images/Hawk/WorkspaceHawk.png',        'hawk-workspace'],
   ['Case Study Images/Hawk/AskDocumentation.png',     'hawk-request'],
   // BloomWatch stills, captured from the running app.
-  // Captured from the app running locally at 2x, rather than pulled out of
-  // the demo GIF, which was only 640px wide.
-  ['Case Study Images/BloomWatch/Map-hires.png',       'bloom-map'],
-  ['Case Study Images/BloomWatch/Dashboard-hires.png', 'bloom-dashboard'],
-  ['Case Study Images/BloomWatch/Alerts.png',          'bloom-alerts'],
+  // BloomWatch, captured from the running app.
+  ['Case Study Images/BloomWatch/map.png',       'bloom-map'],
+  ['Case Study Images/BloomWatch/dashboard.png', 'bloom-dashboard'],
+  ['Case Study Images/BloomWatch/Alerts.png',    'bloom-alerts'],
   // Hobbies.
   ['Hobbies/ArtPainting/91B0DDD8-C57D-429D-A4EC-166279CF998D.JPG', 'about-painting-1'],
   ['Hobbies/ArtPainting/A15A27C6-5065-49DE-9B3E-95FD768B493E.JPG', 'about-painting-2'],

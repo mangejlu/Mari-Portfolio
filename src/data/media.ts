@@ -71,43 +71,48 @@ export const media = {
       {
         "file": "bloom-map-800.webp",
         "width": 800,
-        "height": 500
+        "height": 499
       },
       {
         "file": "bloom-map-1600.webp",
         "width": 1600,
-        "height": 1000
+        "height": 998
       }
     ],
     "width": 1600,
-    "height": 1000
+    "height": 998
   },
   "bloom-dashboard": {
     "variants": [
       {
         "file": "bloom-dashboard-800.webp",
         "width": 800,
-        "height": 500
+        "height": 499
       },
       {
         "file": "bloom-dashboard-1600.webp",
         "width": 1600,
-        "height": 1000
+        "height": 998
       }
     ],
     "width": 1600,
-    "height": 1000
+    "height": 998
   },
   "bloom-alerts": {
     "variants": [
       {
         "file": "bloom-alerts-800.webp",
-        "width": 640,
-        "height": 339
+        "width": 800,
+        "height": 499
+      },
+      {
+        "file": "bloom-alerts-1600.webp",
+        "width": 1600,
+        "height": 998
       }
     ],
-    "width": 640,
-    "height": 339
+    "width": 1600,
+    "height": 998
   },
   "about-painting-1": {
     "variants": [

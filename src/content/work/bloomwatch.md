@@ -157,9 +157,9 @@ reflection: >-
   deciding whether to grab the antihistamines.
 
 links:
-  - label: See the project
+  - label: See the code on GitHub
     href: https://github.com/ficiency/NASA-Space-Challenge-2025
-    cursor: open it
+    cursor: read it
   - label: The challenge brief
     href: https://www.spaceappschallenge.org/2025/challenges/bloomwatch-an-earth-observation-application-for-global-flowering-phenology/
     cursor: visit

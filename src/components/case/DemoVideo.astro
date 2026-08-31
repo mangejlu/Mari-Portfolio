@@ -9,6 +9,10 @@ const { name, label, caption } = Astro.props;
  * file format. As H.264 it is 3MB, and behind a poster it costs a visitor
  * nothing at all unless they ask to watch it. `preload="none"` is what makes
  * that true; without it the browser starts pulling the video on page load.
+ *
+ * The encode carries no audio track and the element is muted, so it can never
+ * surprise anyone with sound, and a browser will allow it to play without a
+ * gesture if that is ever wanted.
  */
 ---
 <figure class="demo">
@@ -18,6 +22,7 @@ const { name, label, caption } = Astro.props;
       poster={`/media/${name}-poster.webp`}
       preload="none"
       playsinline
+      muted
       loop
       controls
       data-demo-video
