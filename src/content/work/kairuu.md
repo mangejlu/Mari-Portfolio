@@ -14,9 +14,9 @@ meta:
   type: UX/UI · Web app
   client: Kairuu, a startup founded at my university in Mexico
   year: '2026'
-  team: Design, solo
-  role: ['Product designer']
-  tools: ['Figma', 'Notion']
+  team: 5 people
+  role: ['Product designer', 'Front-end developer']
+  tools: ['Figma', 'Notion', 'React']
 
 stats:
   - value: '5'
@@ -183,6 +183,13 @@ gallery:
   - name: kairuu-library
     alt: The Library, listing generated resources with type filters for classes, quizzes, video, text and flashcards.
     caption: Everything ever made, in one place, filtered by what it is rather than where it was saved.
+
+status:
+  label: In review
+  body: >-
+    The build is underway and the project is still going through approval at
+    the university, so there are no results from real classrooms yet. What is
+    below came out of the usability sessions on the prototype.
 
 outcome:
   wentWell:

@@ -17,6 +17,9 @@ const JOBS = [
   ['Case Study Images/Hawk/FindingsProcessHawk.png',  'hawk-findings'],
   ['Case Study Images/Hawk/WorkspaceHawk.png',        'hawk-workspace'],
   ['Case Study Images/Hawk/AskDocumentation.png',     'hawk-request'],
+  // BloomWatch stills, captured from the running app.
+  ['Case Study Images/BloomWatch/Map.png',    'bloom-map'],
+  ['Case Study Images/BloomWatch/Alerts.png', 'bloom-alerts'],
   // Hobbies.
   ['Hobbies/ArtPainting/91B0DDD8-C57D-429D-A4EC-166279CF998D.JPG', 'about-painting-1'],
   ['Hobbies/ArtPainting/A15A27C6-5065-49DE-9B3E-95FD768B493E.JPG', 'about-painting-2'],
@@ -79,12 +82,15 @@ const ALL = [
 for (const [src, name] of ALL) {
   const meta = await sharp(src).metadata();
   const variants = [];
+  // A small source is already soft; spending fewer bits on it just adds
+  // compression artefacts to blur.
+  const quality = meta.width <= 900 ? 92 : 78;
   for (const w of WIDTHS) {
     const out = `public/media/${name}-${w}.webp`;
     const info = await sharp(src)
       .rotate()                       // honour EXIF orientation
       .resize({ width: w, withoutEnlargement: true })
-      .webp({ quality: 78 })
+      .webp({ quality })
       .toFile(out);
     // withoutEnlargement means the file can come out narrower than asked.
     variants.push({ file: `${name}-${w}.webp`, width: info.width, height: info.height });

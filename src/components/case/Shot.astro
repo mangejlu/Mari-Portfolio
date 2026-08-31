@@ -1,16 +1,26 @@
 ---
 import Picture from '../Picture.astro';
-import type { MediaName } from '../../data/media';
+import { media, type MediaName } from '../../data/media';
 
 interface Props { name: MediaName; alt: string; caption?: string; wide?: boolean }
 const { name, alt, caption, wide = false } = Astro.props;
+
+/**
+ * Never display an image larger than it was captured.
+ *
+ * Stretching a 640px screenshot across a 1320px column does not reveal
+ * anything; it just enlarges the blur. Capping at the real width keeps a
+ * low-resolution source looking sharp, at the cost of it being smaller on
+ * the page, which is the right trade.
+ */
+const natural = media[name].variants.at(-1)!.width;
 
 /**
  * A product screenshot. Two widths in a srcset, lazy below the fold, with
  * width/height set so the page never jumps while they load.
  */
 ---
-<figure class:list={['shot', wide && 'shot--wide']}>
+<figure class:list={['shot', wide && 'shot--wide']} style={`--natural:${natural}px`}>
   <Picture
     name={name}
     alt={alt}
@@ -20,7 +30,7 @@ const { name, alt, caption, wide = false } = Astro.props;
 </figure>
 
 <style>
-  .shot { margin: 0; }
+  .shot { margin: 0; max-width: min(100%, var(--natural)); }
   .shot :global(img) {
     display: block;
     width: 100%;

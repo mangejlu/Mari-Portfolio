@@ -66,6 +66,28 @@ export const media = {
     "width": 1600,
     "height": 821
   },
+  "bloom-map": {
+    "variants": [
+      {
+        "file": "bloom-map-800.webp",
+        "width": 640,
+        "height": 339
+      }
+    ],
+    "width": 640,
+    "height": 339
+  },
+  "bloom-alerts": {
+    "variants": [
+      {
+        "file": "bloom-alerts-800.webp",
+        "width": 640,
+        "height": 339
+      }
+    ],
+    "width": 640,
+    "height": 339
+  },
   "about-painting-1": {
     "variants": [
       {

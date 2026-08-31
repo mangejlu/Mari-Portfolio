@@ -120,6 +120,14 @@ screens:
       - Alerts per region, keyed to what’s predicted.
       - Written for someone deciding about tomorrow.
 
+gallery:
+  - name: bloom-map
+    alt: The bloom map of Monterrey, with each of the nine regions marked and shaded by predicted intensity, and controls for zone and year.
+    caption: Nine regions, each shaded by what is predicted there. The gap between the leafiest district and the barest is something you see rather than something you are told.
+  - name: bloom-alerts
+    alt: The alerts view, showing predicted allergen levels for a selected region.
+    caption: The forecast turned into the only question that matters, which is whether to go outside this week.
+
 demo:
   name: bloomwatch
   label: Watch the demo
