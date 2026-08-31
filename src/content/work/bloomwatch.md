@@ -5,7 +5,7 @@ summary: >-
   Built for the NASA Space Apps Challenge 2025. Turns NASA phenology data into
   a bloom forecast that tells allergy sufferers in Monterrey what's coming.
 order: 2
-# Last in the sequence, so it exits to About rather than looping.
+next: kairuu
 accent: '#6FB98F'
 aura: ['#BFE0C4', '#DCE9B8', '#A9D3C4']
 tags: ['data visualization', 'civic tech', '48-hour build']
