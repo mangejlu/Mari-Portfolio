@@ -127,6 +127,23 @@ const work = defineCollection({
       next: z.array(z.string()),
     }).optional(),
 
+    /**
+     * Visual identity. Kept as structured data rather than prose so the
+     * section can be mostly swatches and specimens, not paragraphs about
+     * colour.
+     */
+    visual: z.object({
+      idea: z.string(),
+      /** Optional: what the mark is built from and why. */
+      mark: z.string().optional(),
+      palette: z.array(z.object({
+        hex: z.string().regex(/^#[0-9a-fA-F]{6}$/),
+        name: z.string(),
+        role: z.string(),
+      })),
+      type: z.object({ family: z.string(), note: z.string() }),
+    }).optional(),
+
     /** Shown in place of outcomes while a project is still in progress. */
     status: z.object({
       label: z.string(),

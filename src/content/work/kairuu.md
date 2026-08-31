@@ -15,7 +15,7 @@ meta:
   client: Kairuu, a startup founded at my university in Mexico
   year: '2026'
   team: 5 people
-  role: ['Product designer', 'Front-end developer']
+  role: ['Product designer', 'Visual identity', 'Front-end developer']
   tools: ['Figma', 'Notion', 'React']
 
 stats:
@@ -183,6 +183,37 @@ gallery:
   - name: kairuu-library
     alt: The Library, listing generated resources with type filters for classes, quizzes, video, text and flashcards.
     caption: Everything ever made, in one place, filtered by what it is rather than where it was saved.
+
+visual:
+  idea: Calm enough to sit inside for an hour without noticing it.
+  mark: >-
+    The palette is built around what educators are actually doing in the
+    product: long stretches of organising, structuring and reviewing. Green
+    for growth and visible progress, indigo for the focused work of shaping a
+    curriculum, blue underneath both because an education tool holding
+    someone's material has to feel dependable.
+  palette:
+    - hex: '#38A169'
+      name: Shamrock
+      role: Primary. Progress, completion and positive feedback
+    - hex: '#6BAF92'
+      name: Muted teal
+      role: Secondary, for supporting states
+    - hex: '#5A5FCF'
+      name: Slate indigo
+      role: Accent. Focus and deep work
+    - hex: '#F1F5F9'
+      name: Platinum
+      role: Background and surfaces
+    - hex: '#2C5282'
+      name: Dusk blue
+      role: Text, for trust and legibility
+  type:
+    family: Nunito
+    note: >-
+      Rounded and unintimidating, across weights 400 to 900. The product is for
+      teachers who are not always confident with software, and the typeface is
+      the first thing that tells them so.
 
 status:
   label: In review

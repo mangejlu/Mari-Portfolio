@@ -9,6 +9,7 @@ import QuestionList from '../../components/case/QuestionList.astro';
 import PersonaTabs from '../../components/case/PersonaTabs.astro';
 import ScreenList from '../../components/case/ScreenList.astro';
 import CaseRail from '../../components/case/CaseRail.astro';
+import VisualDirection from '../../components/case/VisualDirection.astro';
 import Shot from '../../components/case/Shot.astro';
 import DemoVideo from '../../components/case/DemoVideo.astro';
 
@@ -36,6 +37,7 @@ const sections = [
   d.personas?.length ? { id: 'users', label: 'Users' } : null,
   d.demo || d.gallery?.length ? { id: 'see', label: 'See it' } : null,
   d.screens?.length ? { id: 'screens', label: 'Screens' } : null,
+  d.visual ? { id: 'visual', label: 'Identity' } : null,
   { id: 'outcome', label: 'Outcome' },
 ].filter(Boolean) as Array<{ id: string; label: string }>;
 
@@ -201,6 +203,14 @@ const secondaryLinks = d.links?.slice(1) ?? [];
           <Reveal><p class="case__kicker">Key screens</p></Reveal>
           <Reveal><h2 class="case__h2">From friction to flow</h2></Reveal>
           <Reveal><ScreenList screens={d.screens} /></Reveal>
+        </section>
+      ) : null}
+
+      {d.visual ? (
+        <section id="visual" class="shell case__section">
+          <Reveal><p class="case__kicker">Visual identity</p></Reveal>
+          <Reveal><h2 class="case__h2">How it should feel</h2></Reveal>
+          <Reveal><VisualDirection {...d.visual} /></Reveal>
         </section>
       ) : null}
 

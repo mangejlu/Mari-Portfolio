@@ -1,0 +1,99 @@
+---
+interface Props {
+  idea: string;
+  mark?: string;
+  palette: Array<{ hex: string; name: string; role: string }>;
+  type: { family: string; note: string };
+}
+const { idea, mark, palette, type } = Astro.props;
+
+/**
+ * Visual identity, shown rather than described.
+ *
+ * Swatches and a type specimen carry this better than paragraphs about colour
+ * theory, and it keeps a section that is fundamentally about looking at
+ * something from turning into more reading.
+ */
+---
+
+<div class="visual">
+  <p class="visual__idea">{idea}</p>
+  {mark && <p class="visual__mark">{mark}</p>}
+
+  <ul class="swatches">
+    {palette.map((c) => (
+      <li class="swatch" style={`--c:${c.hex}`}>
+        <span class="swatch__chip" aria-hidden="true"></span>
+        <span class="swatch__name">{c.name}</span>
+        <span class="swatch__role">{c.role}</span>
+        <span class="swatch__hex">{c.hex.toUpperCase()}</span>
+      </li>
+    ))}
+  </ul>
+
+  <div class="type">
+    <p class="type__family">{type.family}</p>
+    <p class="type__note">{type.note}</p>
+  </div>
+</div>
+
+<style>
+  .visual__idea {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: clamp(19px, 2.6vw, 24px);
+    line-height: 1.3;
+    max-width: 36ch;
+    text-wrap: balance;
+  }
+  .visual__mark {
+    margin-top: 12px;
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--ink-soft);
+    max-width: 52ch;
+  }
+
+  .swatches {
+    list-style: none;
+    margin: 26px 0 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px;
+  }
+  .swatch { display: grid; gap: 2px; }
+  .swatch__chip {
+    height: 62px;
+    border-radius: var(--radius-sm);
+    background: var(--c);
+    border: 1px solid color-mix(in oklab, var(--ink) 12%, transparent);
+    margin-bottom: 8px;
+  }
+  .swatch__name { font-size: 13.5px; font-weight: 500; }
+  .swatch__role { font-size: 12px; color: var(--ink-soft); line-height: 1.4; }
+  .swatch__hex {
+    font-size: 11px;
+    color: var(--ink-faint);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.03em;
+  }
+
+  .type {
+    margin-top: 26px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+  }
+  .type__family {
+    font-size: clamp(26px, 4vw, 36px);
+    line-height: 1.05;
+    letter-spacing: -0.01em;
+  }
+  .type__note {
+    margin-top: 8px;
+    font-size: 13.5px;
+    line-height: 1.55;
+    color: var(--ink-soft);
+    max-width: 52ch;
+  }
+</style>

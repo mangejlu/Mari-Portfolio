@@ -14,7 +14,7 @@ meta:
   client: FEMSA, corporate audit group
   year: '2026'
   team: 5 people
-  role: ['Product designer', 'Front-end developer']
+  role: ['Product designer', 'Visual identity', 'Front-end developer']
   tools: ['Figma', 'Notion', 'React']
 
 problem:
@@ -194,6 +194,33 @@ gallery:
   - name: hawk-workspace
     alt: The workspace with an embedded spreadsheet editor and formatting toolbar.
     caption: Spreadsheets and documents edit in place, so evidence never leaves the audit it belongs to.
+
+visual:
+  idea: Sober, editorial, and built to be trusted rather than admired.
+  mark: >-
+    The hawk is drawn from geometric planes. A V for the gaze, because the
+    point is a focus that does not blink. Wings angled down, for the gesture
+    of spotting something and dropping to the detail. Faceted planes for
+    precision. In audit the interface has to feel verifiable, so there are no
+    rounded corners and nothing decorative anywhere in the system.
+  palette:
+    - hex: '#F9F7F3'
+      name: Paper
+      role: Warm base, chosen to cut visual noise across a long session
+    - hex: '#12100E'
+      name: Ink
+      role: Primary text and hierarchy
+    - hex: '#0E0D0C'
+      name: Warm black
+      role: Sidebar and navigation contrast
+    - hex: '#E8A33D'
+      name: Signal amber
+      role: Alerts, progress and risk. Used sparingly so it still means something
+  type:
+    family: Helvetica Neue
+    note: >-
+      Deliberately neutral. Attention belongs on the data, the states and the
+      actions, not on the typeface carrying them.
 
 status:
   label: In development
