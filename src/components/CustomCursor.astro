@@ -50,8 +50,12 @@
     grid-auto-flow: column;
     gap: 6px;
     place-content: center;
+    /* Only `scale` is eased. Position is written through the separate
+       `translate` property with no transition: easing it made the ring trail
+       ~180ms behind the real pointer, and since the real cursor is hidden,
+       that lag was the only thing you could see. */
     transition:
-      transform 0.18s var(--ease),
+      scale 0.18s var(--ease),
       width 0.32s var(--ease),
       height 0.32s var(--ease),
       margin 0.32s var(--ease),
@@ -254,11 +258,37 @@
     /** How far the sleeping cursor has nodded downward. */
     let drop = 0;
 
+    let frame = 0;
+
+    const paint = () => {
+      frame = 0;
+
+      ring.style.translate = `${x}px ${y + drop}px`;
+      ring.style.scale = String(scale);
+
+      // Near the right or bottom edge, flip the label and bubble to the other
+      // side of the cursor so they don't get clipped off-screen.
+      const flipX = x > window.innerWidth - 190;
+      const labelX = flipX ? x - 16 : x + 16;
+      label.style.translate = `${labelX}px ${y + 16}px`;
+      label.style.transformOrigin = flipX ? '100% 0' : '0 0';
+      label.style.transform = flipX ? 'translateX(-100%)' : '';
+
+      const bubbleX = flipX ? x - 20 : x + 20;
+      bubble.style.translate = `${bubbleX}px ${y + drop - 34}px`;
+      bubble.style.transform = flipX ? 'translateX(-100%)' : '';
+
+      zzz.style.translate = `${x + 16}px ${y + drop - 18}px`;
+    };
+
+    /**
+     * Pointer events can fire several times per frame. Writing styles on each
+     * one is wasted work that shows up as stutter, so writes are collapsed
+     * into one paint per frame.
+     */
     const render = () => {
-      ring.style.transform = `translate(${x}px, ${y + drop}px) scale(${scale})`;
-      label.style.transform = `translate(${x + 16}px, ${y + 16}px)`;
-      bubble.style.transform = `translate(${x + 20}px, ${y + drop - 34}px)`;
-      zzz.style.transform = `translate(${x + 16}px, ${y + drop - 18}px)`;
+      if (frame) return;
+      frame = requestAnimationFrame(paint);
     };
 
     /* ---------------- the cursor falls asleep ----------------
@@ -325,7 +355,7 @@
           ? Math.pow(t / 0.82, 1.9)
           : 1 - Math.sin((t - 0.82) / 0.18 * Math.PI) * 0.06;
         drop = from + (distance - from) * eased;
-        render();
+        paint();
         if (t < 1) dropRaf = requestAnimationFrame(settle);
       };
       dropRaf = requestAnimationFrame(settle);
