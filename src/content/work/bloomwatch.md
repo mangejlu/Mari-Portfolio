@@ -122,11 +122,14 @@ screens:
 
 gallery:
   - name: bloom-map
-    alt: The bloom map of Monterrey, with each of the nine regions marked and shaded by predicted intensity, and controls for zone and year.
-    caption: Nine regions, each shaded by what is predicted there. The gap between the leafiest district and the barest is something you see rather than something you are told.
+    alt: The bloom map of Monterrey, with nine regions outlined and marked by coloured intensity pins, over controls for zone and year.
+    caption: Nine regions, each marked by what is predicted there. The gap between the leafiest district and the barest is something you see rather than something you are told.
+  - name: bloom-dashboard
+    alt: The dashboard, showing active blooms, pollen level, temperature and health alerts, above cards for the species currently flowering.
+    caption: The dashboard answers the question people actually have, which is how bad it is today, before it offers any of the data underneath.
   - name: bloom-alerts
     alt: The alerts view, showing predicted allergen levels for a selected region.
-    caption: The forecast turned into the only question that matters, which is whether to go outside this week.
+    caption: The forecast turned into the only thing that matters, which is whether to go outside this week.
 
 demo:
   name: bloomwatch
