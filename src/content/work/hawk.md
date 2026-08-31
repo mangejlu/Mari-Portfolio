@@ -7,7 +7,7 @@ order: 1
 next: bloomwatch
 accent: '#E8A33D'
 aura: ['#F6D9A4', '#EFC58E', '#E8DCC4']
-tags: ['enterprise', 'information architecture', '0→1']
+tags: ['enterprise', 'information architecture', 'built from scratch']
 
 meta:
   type: UX/UI · Web app

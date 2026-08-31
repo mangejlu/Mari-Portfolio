@@ -8,7 +8,7 @@ summary: >-
 order: 3
 accent: '#5A5FCF'
 aura: ['#C9CBEF', '#B9D9CB', '#DAD3F0']
-tags: ['0→1', 'AI', 'research-led']
+tags: ['first version', 'AI', 'research-led']
 
 meta:
   type: UX/UI · Web app
