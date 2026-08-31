@@ -21,7 +21,7 @@ meta:
 stats:
   - value: '5'
     label: people interviewed
-    note: Three educators, and two students nobody asked me to talk to.
+    note: Three educators, and two students.
     kind: measured
   - value: '6'
     label: tools in the competitive scan
@@ -131,6 +131,11 @@ personas:
       - Scattered files.
 
 principles:
+  - title: Build for the least confident person in the room
+    body: >-
+      Teachers arrive with wildly different comfort with software, and the ones
+      who need this most are the ones software usually loses. So the whole
+      product is four places, and nothing that matters hides behind discovery.
   - title: Organise before you create
     body: Sort first, so creating starts from order instead of a pile.
   - title: Capture intent, not just input
@@ -139,6 +144,11 @@ principles:
     body: AI writes drafts. Teachers write finals.
 
 screens:
+  - title: A navigation you can hold in your head
+    purpose: Make the whole product legible in one glance, for teachers of any technical confidence.
+    notes:
+      - Four destinations, Dashboard, Documents, Library and Generate.
+      - No settings maze, no feature you have to be told about.
   - title: Upload and organisation
     purpose: Kill the file-chaos problem before the teacher does anything else.
     notes:
@@ -160,6 +170,20 @@ screens:
       - What you touched last, right at the top.
       - Upload and create, one click away.
 
+gallery:
+  - name: kairuu-upload
+    alt: The upload screen, with a drag-and-drop area on the left and an AI-sorted folder structure on the right, awaiting confirmation.
+    caption: The AI sorts, then stops. Files are grouped into folders and nothing is filed until the teacher presses Confirm Structure, which is the whole principle in one button.
+  - name: kairuu-documents
+    alt: A Documents folder called Biology 101, listing files by name, date modified and size, with a drop area underneath.
+    caption: Files behave the way teachers already expect files to behave. Name, date, size, and somewhere obvious to drop more.
+  - name: kairuu-resource
+    alt: A generated lesson plan titled Biology 101, Cell Structure Basics, showing lesson objectives and a timed introduction section.
+    caption: A generated lesson, opened. Objectives, timings and content, all editable, because the teacher is the one who has to stand up and deliver it.
+  - name: kairuu-library
+    alt: The Library, listing generated resources with type filters for classes, quizzes, video, text and flashcards.
+    caption: Everything ever made, in one place, filtered by what it is rather than where it was saved.
+
 outcome:
   wentWell:
     - Testers walked the whole flow without being prompted once.
@@ -179,6 +203,11 @@ reflection: >-
   with AI bolted on, but an attempt to shorten the distance between what a
   teacher knows and what a student actually gets. That came from the two
   interviews nobody asked me to do.
+
+  The other thing I would defend is how plain it looks. Restraint was the
+  design decision here, not a shortage of ideas. A teacher who is nervous
+  about software will not go hunting for a feature, so there is nothing to
+  hunt for.
 
 links:
   - label: Try the prototype

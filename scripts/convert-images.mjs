@@ -1,6 +1,7 @@
 import { createRequire } from 'node:module';
-import { mkdirSync, statSync } from 'node:fs';
-const sharp = createRequire(import.meta.url)('sharp');
+import { mkdirSync, statSync, readdirSync } from 'node:fs';
+const require = createRequire(import.meta.url);
+const sharp = require('sharp');
 
 const ROOT = '/Users/mangejlu/Documents/Claude';
 mkdirSync('public/media', { recursive: true });
@@ -48,8 +49,30 @@ let total = 0;
  */
 const manifest = {};
 
+/**
+ * Finds a file by a distinctive fragment of its name.
+ *
+ * macOS screenshot filenames contain a narrow no-break space (U+202F) before
+ * "AM"/"PM", which looks identical to a normal space in a terminal and makes
+ * a hardcoded path silently fail to match. Searching by fragment sidesteps it.
+ */
+function findIn(dir, fragment) {
+  const hit = readdirSync(`${ROOT}/${dir}`).find((f) => f.includes(fragment));
+  if (!hit) throw new Error(`no file matching "${fragment}" in ${dir}`);
+  return `${ROOT}/${dir}/${hit}`;
+}
+
+// Kairuu product screens, matched by capture time.
+const KAIRUU = [
+  ['3.13.09', 'kairuu-documents'],
+  ['3.18.07', 'kairuu-upload'],
+  ['3.18.22', 'kairuu-resource'],
+  ['3.18.53', 'kairuu-library'],
+].map(([frag, name]) => [findIn('Case Study Images/Kairuu', frag), name]);
+
 const ALL = [
   ...JOBS.map(([rel, name]) => [`${ROOT}/${rel}`, name]),
+  ...KAIRUU,
   ...HEIC_JOBS,
 ];
 
