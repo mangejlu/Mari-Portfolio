@@ -162,69 +162,85 @@ export const media = {
     "width": 1600,
     "height": 861
   },
-  "kairuu-documents": {
+  "kairuu-landing": {
     "variants": [
       {
-        "file": "kairuu-documents-800.webp",
+        "file": "kairuu-landing-800.webp",
         "width": 800,
-        "height": 454
+        "height": 427
       },
       {
-        "file": "kairuu-documents-1600.webp",
+        "file": "kairuu-landing-1600.webp",
         "width": 1600,
-        "height": 907
+        "height": 854
       }
     ],
     "width": 1600,
-    "height": 907
+    "height": 854
+  },
+  "kairuu-signin": {
+    "variants": [
+      {
+        "file": "kairuu-signin-800.webp",
+        "width": 800,
+        "height": 427
+      },
+      {
+        "file": "kairuu-signin-1600.webp",
+        "width": 1600,
+        "height": 854
+      }
+    ],
+    "width": 1600,
+    "height": 854
   },
   "kairuu-upload": {
     "variants": [
       {
         "file": "kairuu-upload-800.webp",
         "width": 800,
-        "height": 454
+        "height": 427
       },
       {
         "file": "kairuu-upload-1600.webp",
         "width": 1600,
-        "height": 907
+        "height": 854
       }
     ],
     "width": 1600,
-    "height": 907
-  },
-  "kairuu-resource": {
-    "variants": [
-      {
-        "file": "kairuu-resource-800.webp",
-        "width": 800,
-        "height": 454
-      },
-      {
-        "file": "kairuu-resource-1600.webp",
-        "width": 1600,
-        "height": 907
-      }
-    ],
-    "width": 1600,
-    "height": 907
+    "height": 854
   },
   "kairuu-library": {
     "variants": [
       {
         "file": "kairuu-library-800.webp",
         "width": 800,
-        "height": 454
+        "height": 427
       },
       {
         "file": "kairuu-library-1600.webp",
         "width": 1600,
-        "height": 907
+        "height": 854
       }
     ],
     "width": 1600,
-    "height": 907
+    "height": 854
+  },
+  "kairuu-resource": {
+    "variants": [
+      {
+        "file": "kairuu-resource-800.webp",
+        "width": 800,
+        "height": 427
+      },
+      {
+        "file": "kairuu-resource-1600.webp",
+        "width": 1600,
+        "height": 854
+      }
+    ],
+    "width": 1600,
+    "height": 854
   },
   "about-nobel": {
     "variants": [

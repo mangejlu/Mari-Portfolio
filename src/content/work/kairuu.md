@@ -171,18 +171,19 @@ screens:
       - Upload and create, one click away.
 
 gallery:
+  - name: kairuu-landing
+    alt: The Kairuu landing page, headlined "Turn scattered files into ready-to-teach resources", with a preview of the library beside it.
+    caption: The promise, stated in the first line a teacher reads. Scattered files in, teachable material out.
   - name: kairuu-upload
-    alt: The upload screen, with a drag-and-drop area on the left and an AI-sorted folder structure on the right, awaiting confirmation.
-    caption: The AI sorts, then stops. Files are grouped into folders and nothing is filed until the teacher presses Confirm Structure, which is the whole principle in one button.
-  - name: kairuu-documents
-    alt: A Documents folder called Biology 101, listing files by name, date modified and size, with a drop area underneath.
-    caption: Files behave the way teachers already expect files to behave. Name, date, size, and somewhere obvious to drop more.
-  - name: kairuu-resource
-    alt: A generated lesson plan titled Biology 101, Cell Structure Basics, showing lesson objectives and a timed introduction section.
-    caption: A generated lesson, opened. Objectives, timings and content, all editable, because the teacher is the one who has to stand up and deliver it.
+    alt: The upload screen, with a large drop area accepting PDF, DOCX, PPTX and MP4, beside an organization panel waiting to be filled.
+    caption: One drop area, four file types, and a panel that stays empty until there is something to organise. The work starts before the teacher has to make a single decision.
   - name: kairuu-library
-    alt: The Library, listing generated resources with type filters for classes, quizzes, video, text and flashcards.
-    caption: Everything ever made, in one place, filtered by what it is rather than where it was saved.
+    alt: The library, showing total items and last updated, with type filters for classes, quizzes, video, text and flashcards.
+    caption: Everything ever made, filtered by what it is rather than where it was saved.
+  - name: kairuu-resource
+    alt: A generated lesson plan for Biology 101, showing lesson objectives and a timed introduction section.
+    caption: A generated lesson, opened. Objectives, timings and content, all editable, because the teacher is the one who has to stand up and deliver it.
+
 
 visual:
   idea: Calm enough to sit inside for an hour without noticing it.

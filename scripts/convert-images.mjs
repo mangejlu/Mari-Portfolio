@@ -69,10 +69,11 @@ function findIn(dir, fragment) {
 
 // Kairuu product screens, matched by capture time.
 const KAIRUU = [
-  ['3.13.09', 'kairuu-documents'],
-  ['3.18.07', 'kairuu-upload'],
-  ['3.18.22', 'kairuu-resource'],
-  ['3.18.53', 'kairuu-library'],
+  ['9.23.16', 'kairuu-landing'],
+  ['9.23.25', 'kairuu-signin'],
+  ['9.25.40', 'kairuu-upload'],
+  ['9.25.52', 'kairuu-library'],
+  ['9.26.00', 'kairuu-resource'],
 ].map(([frag, name]) => [findIn('Case Study Images/Kairuu', frag), name]);
 
 const ALL = [
