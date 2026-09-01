@@ -31,8 +31,13 @@
   --aura-3: var(--peach);
 
   /* type */
-  --font-display: 'Fraunces', Georgia, serif;
-  --font-body: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
+  /* --font-display and --font-body are NOT declared here.
+     <Font cssVariable="..."> in BaseLayout defines them, with the hashed
+     family name of the file it actually downloads plus a metric-matched
+     fallback. Re-declaring them here used to override that: tokens.css is
+     linked after the Font component's inline <style>, so 'Fraunces' won, and
+     'Fraunces' is a family nothing defines. The whole site silently rendered
+     in Georgia and Arial. Set the faces in astro.config.mjs, not here. */
 
   /* rhythm */
   /* The content column. 920px is a comfortable reading width on a laptop but

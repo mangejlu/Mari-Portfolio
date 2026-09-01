@@ -9,7 +9,7 @@ export const site = {
   logo: 'mari.',
   title: 'Mariangel, designer',
   description:
-    'designer studying CS and pursuing product design. Case studies, a bit about me, and a mural you can add to.',
+    'Product designer and front-end developer. Case studies from enterprise, civic and early-stage work, and a bit about me.',
   email: 'loaurbmariangel@gmail.com',
 
   /**

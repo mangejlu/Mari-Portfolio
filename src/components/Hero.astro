@@ -91,15 +91,6 @@ const AURA: Record<string, [string, string, string]> = {
     text-align: center;
     padding: 96px var(--gutter) 0;
   }
-  /* Fades the aura into the opaque content panel below. */
-  .hero::after {
-    content: '';
-    position: absolute;
-    inset: auto 0 0 0;
-    height: 140px;
-    background: linear-gradient(to bottom, transparent, var(--bg));
-    pointer-events: none;
-  }
 
   .hero__inner {
     max-width: clamp(560px, 46vw, 720px);
@@ -178,7 +169,10 @@ const AURA: Record<string, [string, string, string]> = {
     margin: 0 auto;
     padding: 0 0 46px;
     font-size: 13px;
-    color: var(--ink-soft);
+    /* Sits directly on the aura now that the cream band is gone, so it takes
+     full ink rather than a pool: the strip is too short to hold a radial
+     without the radial turning into a visible band. */
+    color: var(--ink);
     text-align: left;
   }
 

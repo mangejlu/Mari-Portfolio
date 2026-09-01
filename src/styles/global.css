@@ -156,27 +156,32 @@ main {
 .on-aura::before {
   content: '';
   position: absolute;
-  inset: -18% -10%;
+  inset: -34% -14%;
   z-index: -1;
   pointer-events: none;
+  /* closest-side sizes the ellipse to the nearest box edge on each axis, and
+     the last stop lands before that edge, so the pool always finishes inside
+     its own box. The previous version used percentage radii that overshot the
+     box on wide blocks, and the clipped ellipse read as a lit rectangle
+     sitting behind the text. */
   background: radial-gradient(
-    58% 56% at 50% 50%,
-    color-mix(in oklab, var(--bg) 94%, transparent) 0%,
-    color-mix(in oklab, var(--bg) 80%, transparent) 40%,
-    color-mix(in oklab, var(--bg) 42%, transparent) 68%,
-    transparent 100%
+    closest-side at 50% 50%,
+    color-mix(in oklab, var(--bg) 90%, transparent) 0%,
+    color-mix(in oklab, var(--bg) 72%, transparent) 42%,
+    color-mix(in oklab, var(--bg) 32%, transparent) 70%,
+    transparent 94%
   );
 }
 /* Left-aligned chapter headers want the pool weighted to the left, or it
    fades out before the end of a long line. */
 .on-aura--start::before {
-  inset: -30% -12% -30% -8%;
+  inset: -44% -16% -44% -10%;
   background: radial-gradient(
-    68% 58% at 34% 50%,
-    color-mix(in oklab, var(--bg) 94%, transparent) 0%,
-    color-mix(in oklab, var(--bg) 78%, transparent) 44%,
-    color-mix(in oklab, var(--bg) 38%, transparent) 72%,
-    transparent 100%
+    58% 52% at 34% 50%,
+    color-mix(in oklab, var(--bg) 90%, transparent) 0%,
+    color-mix(in oklab, var(--bg) 70%, transparent) 44%,
+    color-mix(in oklab, var(--bg) 30%, transparent) 72%,
+    transparent 96%
   );
 }
 
